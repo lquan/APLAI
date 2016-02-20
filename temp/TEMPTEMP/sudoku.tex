@@ -1,0 +1,608 @@
+\section{Sudoku}
+
+\subsection{Discussie}
+
+\subsubsection{ECLiPSe}
+De sudoku-puzzel leent zich bij uitstek voor een Constraint Logic Programming - approach.
+Voor elke rij, kolom en blok moet men telkens nagaan of elke waarde verschillend is en zich
+tussen 1 en 9 bevindt. Deze regels zijn op zich reeds de basis-uitdrukkingen van disequality
+constraints. Je stelt de sudoku voor als een lijst van lijsten, en gaat voor elke rij,
+kolom en blok na of de constraints van het spel gelden.
+In CLP kunnen we de volgende manieren onderscheiden om de sudoku-puzzel
+op te lossen:
+\begin{enumerate}
+ \item \textbf{Passive Constraints (Prolog)}:
+        \begin{description}
+         \item[Generate and Test]
+                De na\"ieve manier om de sudoku puzzel met CLP op te lossen is volgens het 
+                gekende stramien 'Generate and Test'. Je voert een search uit die de gehele
+                puzzel invult met een \verb|member(V,[1,2,3,4,5,6,7,8,9])| voor elk niet ingevuld
+                vak. Achteraf check je of de oplossing voldoet aan de constraints van het spel.
+                Indien dit niet het geval is wordt er gebacktracked en wordt een alternatieve
+                oplossing gegenereerd. Ook deze wordt gecheckt op de constraints, tot 
+                er uiteindelijk een oplossing gegenereerd is die voldoet aan de constraints.
+                \begin{description}
+                \item[Nadeel] Het nadeel van deze methode is dat de zoekboom telkens 
+                        in zijn geheel doorzocht moet worden. Wanneer de zoekboom erg groot
+                        is dit sterk af te raden. Voor een sudoku puzzel zijn er 81 beslissingsvariabelen,
+                        met elk een mogelijke waarde van 1 tot 9. Dit resulteert
+                        in een zoekboom met $9^{81}$ bladeren. De 'Generate and Test' procedure
+                        zal in het slechtste geval heel deze boom moeten doorlopen om tot de
+                        juiste oplossing te komen. Dit is niet aan te raden.
+                \end{description}
+        \item[Variable Ordering]
+                Een mogelijke manier om de zoekboom beter te structureren is het ordenen van de variabelen.
+                Merk op dat we met de volgende methode niet de zoekboom verkleinen, maar slechts het
+                aantal interne knopen verkleinen. Dit doe je door telkens de variabele met het minst aantal keuzemogelijkheden te nemen.
+                Wanneer je bijvoorbeeld eerst de variabele X met mogelijkheden 
+                uit het domein \verb|[1,2]| labelt, en daarna de variabele Y met mogelijkheden uit
+                het domein \verb|[1,2,3,4]| labelt, zal je slechts drie interne knopen hebben (de knoop
+                bij X, en de knopen bij de mogelijkheden \verb|1| en \verb|2|). Wanneer je echter
+                eerst de variabele Y zou labelen, en daarna pas variabele X, heb je 5 interne
+                knopen (de knoop bij Y, en de knopen bij de mogelijkheden \verb|1|, \verb|2|,\verb|3| en \verb|4|).
+                De labeling waarbij we eerst de variabele met het kleinste domein nemen, zal 
+                er toe leiden dat bij het doorzoeken van deze boom de kans dat je in de juiste
+                tak zit telkens zo groot mogelijk is. De kans dat de keuze voor de variabele X
+                juist is, is \verb|50%|. Er is dus \'e\'en kans op twee dat we het tweede deel
+                van de boom niet meer moeten doorzoeken. De kans dat de keuze voor de variabele Y
+                juist is, is slechts \verb|25%|. De kans dat we de andere takken van de knoop 
+                moeten doorzoeken is dus veel groter. Als we dus eerst de variabele X labelen
+                is de kans groter dat we een groter deel van de zoekboom kunnen uitsluiten.
+                \begin{description}
+                \item[Niet Mogelijk] Bij de na\"ieve 'Generate and Test' manier om de sudoku puzzel op te lossen is het echter zo dat elke variabele
+                        in de 'Generate' fase mogelijkheden heeft uit hetzelfde domein \verb|[1,2,3,4,5,6,7,8,9]|.
+                        We kunnen met andere woorden geen voorrang geven aan bepaalde variabelen
+                        omdat ze allemaal even grote domeinen hebben. Het is slechts wanneer we
+                        tijdens het instantieren van de variabelen de domeinen van de overige variabelen zouden kunnen
+                        aanpassen, dat er variabelen met domeinen van verschillende grootte ontstaan.
+                        Dit is echter niet mogelijk in deze 'Generate and Test' modaliteit.
+                \end{description}
+        \item[Incomplete Search]
+                Een tweede mogelijke optimalizatie voor het doorzoeken van de verschillende mogelijkheden
+                in de zoekboom is telkens slechts de eerste of beste \verb|N| mogelijke waarden te
+                beschouwen. We verkleinen als het ware de domeinen van de variabelen door slechts
+                een beperkt deel van hun domein te overlopen. Deze methode laat met andere woorden
+                een deel van de zoekboom buiten beschouwing.
+                \begin{description}
+                \item[Niet Mogelijk] Bij de na\"ieve 'Generate and Test' manier om de sudoku puzzel op te lossen is het echter niet mogelijk om voor elke
+                        variabele slechts een deel van het domein te beschouwen. Het is zelfs zo
+                        dat wanneer we dit zouden doen bij de 'Generate and Test'-methode, dat we
+                        nooit tot een juiste oplossing zouden kunnen komen. Het is immers inherent
+                        aan het spel dat binnen de rij, kolom of blok alle variabelen een verschillende
+                        waarde moeten hebben. Wanneer we telkens slechts de eerste helft van het domein
+                        zouden bekijken wordt het niet mogelijk om voor elk van de negen variabelen
+                        uit die rij,kolom of blok een verschillende waarde te vinden.
+                \end{description}
+        \item[Shallow Backtrack]
+                Een derde mogelijke optimalizatie betreft het zoeken naar slechts de eerste oplossing in 
+                de zoekboom door middel van het \verb|once(chooseValForVar)| predikaat. Dit predikaat
+                zal er voor zorgen dat het toewijzen van een waarde aan een variabele slechts eenmaal
+                zal gebeuren. Wanneer dit aanleiding geeft tot een falende constraint zal er weliswaar
+                gebacktracked worden en een andere waarde gekozen worden. De zoekboom zal echter
+                slechts eenmaal doorlopen worden tot de eerste oplossing gevonden wordt.
+                \begin{description}
+                \item[Niet Nodig] Bij de na\"ieve 'Generate and Test' manier om de sudoku puzzel op te lossen zijn we inderdaad slechts ge\"interesseerd
+                        in de eerste oplossing. Meestal heeft een sudoku slechts \'e\'en oplossing in totaal
+                        en is het gebruik van shallow backtracken echter niet strikt noodzakelijk.
+                \end{description}
+        \end{description}
+ \item \textbf{Delayed Constraints (Suspend)}:
+        \begin{description}
+         \item[Set up constraints and Search]
+        Een betere manier om de sudoku met CLP op te lossen is via delayed constraints.
+        De constraints van het spel kunnen voor de search opgezet worden. Tussen elke
+        variabele in een rij, kolom en blok wordt een \verb|#\=| inequality-constraint opgezet. De
+        constraints worden opgezet tussen de niet-ge\"instantieerde variabelen.
+        Daarna wordt de search wordt uitgevoerd. Van zodra twee variabelen ge\"instantieerd
+        worden, zullen de delayed constraints met deze variabelen wakker gemaakt worden.
+        Nog voor we dus de gehele sudoku hebben ingevuld worden de constraints gecheckt.
+        Wanneer twee instantiaties in dezelfde rij, kolom of blok gelijk zijn, dan zal 
+        de constraint falen, en wordt er onmiddellijk gebacktracked in de zoekboom.
+                \begin{description}
+                \item[Voordeel] Het voordeel van deze aanpak is dat grote delen van de zoekboom
+                        gepruned kunnen worden. Van zodra een delayed constraint wakker wordt,
+                        en een faling genereert, worden alle mogelijke oplossingen met de
+                        huidige instantiaties verwijderd uit de zoekboom. Wanneer de search bijvoorbeeld
+                        links-bovenaan een 1 invult, en rechts ervan ook een 1 invult, zal 
+                        de constraint met betrekking tot deze beide variabelen wakker worden en falen.
+                        De search zal ten gevolge hiervan falen en moeten backtracken. Alle oplossingen
+                        met links-bovenaan een 1, en rechts ervan ook een 1, zijn bijgevolg verdwenen
+                        uit de zoekboom.
+                \end{description}
+        \item[Core Constraints] 
+        De basis constraints die worden aangeboden door de \verb|suspend library|, 
+        zijn boolean constraints (\verb|or/2, and/2, neg/1, =>/2|), 
+        arithmetic constraints (\verb|#<, #=<, #\=, #>=, #>, #=| for integers, \verb|$<, $=<, $\=, $>=, $>, $=| for reals),
+        variable declarations (\verb|X::0..3|) en reified constraints (\verb|$>(X,Y,Bool)|). Voor het oplossen van 
+        de sudoku puzzel moeten we telkens slechts nagaan of de elementen van een rij, kolom of blok verschillend zijn.
+        Het volstaat daarom om gebruik te maken van de \verb|#\=| inequality-constraint.                
+        \item[User Defined Suspensions] 
+        Binnen de \verb|suspend library| is het ook mogelijk om een zelf gedefinieerde constraint te suspenden, totdat
+        een bepaalde variabele ge\"instantieerd is, via het \verb|suspend(constraint, priority, V->inst)| predikaat.
+        Dit hebben we echter niet nodig om de sudoku puzzel op te lossen, aangezien we enkel moeten testen op de 
+        inequality tussen de verschillende variabelen (hetgeen een core constraint is in de \verb|suspend library|)
+        \end{description}
+ \item \textbf{Constraint Propagation (IC)}:
+        \begin{description}
+         \item[Propagation]
+        Een derde manier om de sudoku met CLP op te lossen is via de \verb|interval constraints library (ic)|. De belangrijkste constraints
+        die je bij deze library gebruikt hebben de vorm van een interval. Je duidt hiermee het domein van de verschillende
+        variabelen aan. Wanneer je vervolgens een aritmethische constraint opstelt, zal de library op basis van deze nieuwe
+        regel een bewerking proberen te doen om de interval-constraints van de gebruikte variabelen te verkleinen. Dit zal immers
+        aanleiding geven tot een kleinere zoekboom. Wanneer bijvoorbeeld in onze sudoku op het vakje links bovenaan een 1 wordt
+        ingevuld, zullen bij alle variabelen in dezelfde rij, kolom en blok de waarde 1 verwijderd worden. 
+         \item[Behaviour]
+        Er bestaan verschillende manieren waarop aan interval constraint propagation kan gedaan worden.
+                \begin{description}
+                \item[Consistency Checking] 
+                        Deze vorm van interval constraint checking is in strictu sensu geen vorm van propagatie. Er wordt
+                        gewacht (suspend) tot alle variabelen in een aritmethische (of andere constraint) ge\"instantieerd worden.
+                        Slechts dan wordt nagegaan of dit consistent is. Dit verschilt de facto niet van de delayed methode
+                        hierboven beschreven.
+                \item[Forward Checking]         
+                        Deze vorm van interval constraint propagation is de basisvorm waarbij telkens wanneer een variabele
+                        ge\"instantieerd wordt, waardes die inconsistent zijn bij andere variabelen met deze instantiatie zullen verwijderd 
+                        worden uit de intervallen van deze andere variabelen.
+                \item[Bounds Consistency] 
+                        Deze vorm van interval constraint propagation zal niet alleen de inconsistente waarden verwijderen
+                        bij een instantiatie van een bepaalde variabele, maar ook de consistentie van de intervalgrenzen nagaan.
+                        Deze vorm gaat na of het met de gegeven intervalgrenzen nog steeds mogelijk is voor alle variabelen
+                        een bepaalde instantiatie te vinden. 
+                \item[Domain Consistency] 
+                        Deze vorm van interval constraint propagation voegt aan de vorige vorm toe dat er niet alleen op
+                        basis van de intervalgrenzen maar op basis van alle waarden in het domein, het mogelijk moet zijn
+                        om voor alle variabelen een bepaalde instantiatie te vinden.
+                \end{description}
+        Met betrekking tot de sudoku puzzel is het vooral belangrijk dat de variabelen in elke rij, kolom en blok
+        allen verschillend zijn. In de \verb|interval constraints library (ic)| bestaan er built-in predikaten 
+        die gebruikt kunnen worden om dit te checken : \verb|alldifferent(List)|. Voor het oplossen van de sudoku
+        puzzel is het daarom zaak de meeste geschikte versie van de library te gebruiken, met betrekking tot de implementatie
+        van het \verb|alldifferent(List)| predikaat.
+                \begin{description}
+                \item[Forward Checking] 
+                        \verb|ic| In de basisversie worden de waarden die ge\"instantieerd zijn, verwijderd uit de domeinen
+                        van de nog niet ge\"instantieerde variabelen in de lijst. Deze werkwijze zou zeker moeten volstaan
+                        om de sudoku puzzel op te lossen.
+                \item[Bounds Consistency] 
+                        \verb|ic_global| In de globalversie worden niet alleen de ge\"instantieerde waarden verwijderd,
+                        maar wordt ook nagegaan of de intervalgrenzen consistent zijn. Wanneer bijvoorbeeld door een 
+                        aantal instantiaties in de sudoku, de eerste 3 elementen van een rij een domein hebben 
+                        van \verb|1..3|, en de andere elementen een domein van \verb|1..9|, 
+                        dan zullen in deze versie de waardes 1 tot 3 uit de domeinen van de overige 
+                        variabelen in de rij verwijderd worden. In de sudoku puzzel zullen echter reeds snel gaten
+                        ontstaan in de domeinen van de variabelen (bv. \verb|[1..3, 6..9]|). Dit is niet optimaal
+                        voor het gebruik van deze versie \footnote{Zie Slides bij de cursus 
+                        H02A8a-0910 Advanced Programming Languages for A.I.}.
+                \item[Domain Consistency] 
+                        \verb|ic_global_gac| In de gacversie wordt niet alleen maar met de grenzen van het interval gerekend,
+                        maar eveneens met de waarden binnen dit interval. Met betrekking tot de sudoku puzzel, zou hiermee
+                        het probleem van de gaten in de domein opgelost zijn. De rekenkost voor deze methode ligt echter erg
+                        hoog \footnote{Idem.}. Om deze reden zullen we deze versie niet opnemen in onze experimenten.
+                \end{description}
+        \item[Variable and Value Order Heuristics]
+                Wanneer we een waarde kiezen voor een variabele met het \verb|member| predikaat, of het in ic ingebouwde \verb|indomain|
+                predikaat zullen we normaal gezien telkens het eerste element uit het domein van de eerstvolgende variabele kiezen. Soms kan het
+                echter beter zijn om niet de eerste variabele, of niet de eerste waarde uit het domein te kiezen.
+                \begin{description}
+                \item[Middle Out] 
+                        De Middle Out heuristiek betreft het kiezen van de middelste variabelen eerst. Normaal gezien verwachten 
+                        we dat dit voor het oplossen van een sudoku puzzel geen verschil zal maken. Er is immers geen enkele
+                        aanwijzing dat het nemen van de middelste vakken in een sudoku puzzel sneller tot een oplossing zou
+                        leiden. Dit lijkt integendeel sterk afhankelijk te zijn van de concrete puzzelsituatie.
+                \item[First Fail] 
+                        De First Fail heuristiek betreft het kiezen van de variabele met het kleinste domein. Zoals reeds vermeld
+                        zal dit het aantal interne knopen in ons systeem sterk verkleinen. De \verb|interval constraints library (ic)|
+                        biedt hiervoor een ingebouwde methode aan. We verwachten dat dit voor de sudoku puzzel een grote verbetering
+                        oplevert.
+                \item[Middle Positions]
+                        De Middle Positions heuristiek betreft het kiezen van de middelste waarde uit het domein van de variabele.
+                        Voor het sudoku spel verwachten we dat dit geen significant verschil zal maken.                 
+                \end{description}
+        \end{description}
+ \item \textbf{Constrained Optimisation}:
+        Constrained optimisation problems gebruiken een enigszins verschillende methode om de zoekboom te doorlopen. In plaats van 
+        constraints die systematisch de niet-oplossingen uit de zoekboom verwijderen, berekent de COP-methode bij elke
+        oplossing een kost, en wordt er verder gezocht tot de kost minimaal is. Om deze methode toe te passen op het sudoku spel
+        dient men de constraints van het spel te kunnen uitdrukken in een algemene kost functie. Het zou bijvoorbeeld mogelijk zijn
+        constraints op te stellen die uitdrukken dat de waardes in de rijen en de kolommen telkens alldifferent moeten zijn. Dit
+        kan men doen met de \verb|interval constraints library (ic)|. Daarna kan men het aantal fouten in de blokken uitdrukken
+        als de kost-functie die geminimaliseerd moet worden. Op deze manier zou de COP-methode uiteindelijk ook naar de oplossing
+        convergeren. We vermoeden echter dat dit geen toegevoegde waarde betekent voor de oplossing van de sudoku puzzel. De constraints
+        op de blokken worden door deze methode immers teruggebracht naar de 'Generate and Test'-methode. We verliezen op deze manier
+        de pruning als gevolg van deze constraint.
+ \end{enumerate}
+
+\subsubsection{CHR}
+Het oplossen van een sudoku puzzel op basis van een rule-based system zoals Constraint Handling Rules, gebeurt op een zeer 
+verschillende manier. Door middel van de constraint store kunnen we de status van onze sudoku puzzel voorstellen. Door middel
+van de constraint handling rules kunnen we vervolgens de verschillende regels van het spel uitdrukken. Het heeft weinig zin een na\"ieve
+'Generate and Test' methode te implementeren op basis van CHR. Van zodra een constraint in de constraint store gezet wordt
+zullen alle regels die hierop betrekking hebben worden uitgevoerd. Van deze werkwijze kunnen we slim gebruik maken door
+het zoeken naar de juiste oplossing volledig in de constraint store te laten plaatsvinden. Het voordeel van CHR is dat 
+we volledig zelf kunnen bepalen hoe het zoekproces in zijn werk gaat. We kunnen met andere woorden in CHR eveneens 
+aan actieve propagatie doen, zoals die in de \verb|interval constraints library (ic)| wordt aangeboden.
+
+Het oplossen van een sudoku, behelst de volgende stappen. Eerst en vooral moeten we de status van de sudoku inlezen in de
+constraint store. We stellen variabelen voor door middel van een constraint en we stellen reeds ge\"instantieerde plaatsen
+voor door middel van een andere constraint. In onze regels beschrijven we vervolgens door middel van een simpagation, 
+dat wanneer een instantiatie samen met een variabele voorkomt in dezelfde rij, kolom of blok, dat we de waarde van de instantiatie
+verwijderen uit het domein van de variabele. Op deze manier doen we zelf aan actieve propagatie. Vervolgens schrijven we
+een regel die uitdrukt dat een variabele met een leeg domein het systeem doet falen (backtrack-point), en dat een
+variabele met een singleton domein een instantiatie moet worden. De volgende fase die moet toegevoegd worden aan het systeem
+is het zoeken zelf. Hiervoor hoeven we slechts een regel bij te voegen die voor een variabele een waarde uit het domein kiest
+en de variabele uit de constraint store vervangt door een instantiatie. Door deze regel toe te voegen zullen opnieuw alle
+regels in verband met de rij, kolom en blok worden uitgevoerd. Als dit aanleiding zou geven tot een variabele met een leeg
+domein wordt er gebacktracked naar de search methode. Hier kunnen we dan de gekozen waarde uit het domein van de variabele verwijderen,
+en verder een nieuwe (andere) waarde kiezen.
+
+Deze oplossingsmethode is qua principe zeer gelijkaardig aan de \verb|interval constraints| \verb|library (ic)|.
+We passen immers eveneens actief de domeinen van de verschillende variabelen aan van zodra een variabele
+ge\"instantieerd wordt. Door de sudoku voor te stellen als constraints in de constraint store is het echter niet mogelijk om de volgorde waarin de verschillende
+'variabelen' worden gekozen te veranderen. De domeinen van sommige variabelen zullen immers kleiner zijn, en zouden aanleiding
+geven tot een zoekboom met minder interne knopen (Cfr First Fail). Het implementeren van zulke ordening binnen CHR, lijkt
+echter niet geheel aan te raden. Men zou immers altijd bij elke instantiatie eerst de gehele constraint store moeten doorlopen 
+om te bepalen welke 'variabele' het kleinste domein heeft. Hiervoor zou men dan voor elke lijst van elke variabele een \verb|length| moeten
+oproepen. Op het eerste zicht lijkt dit een onnodige overhead te betekenen voor het geheel van de zoekactie.
+Naast het gebrek aan ondersteuning voor Variable Ordening, biedt CHR ook geen ondersteuning voor Value Ordening zoals de \verb|interval constraints library (ic)|.
+Dit laatste is echter geen beperking voor het oplossen van een sudoku. De verschillende waardes in een actief gepropageerd domein
+hebben immers allemaal dezelfde kans de juiste waarde te zijn. Een heuristiek toepassen op welke waarde moet gekozen
+worden uit een reeds actief gepropageerd domein lijkt met andere woorden niet echt bij te dragen tot een betere oplosser.
+
+\subsubsection{Jess}
+TODO
+
+\subsection{Viewpoints and Programs}
+\subsubsection{Viewpoints}
+De sudoku puzzel wordt klassiek bekeken als een matrix van 9 rijen en kolommen waarin de getallen van 1 tot 9 in elke
+rij, elke kolom en elk blok eenmaal moeten voorkomen en dat elke waarde in elke rij, kolom of blok verschillend moet zijn.
+Voor dit eerste viewpoint heb je met andere woorden een set van 81 variabelen (9 lijsten die de rijen voorstellen met
+telkens 9 variabelen) en voor elke variabele een domein van 1 tot 9. Een alternatief viewpoint beschouwt
+de sudoku als een set van 9 permutaties. Het domein voor elk van deze permutaties is de set van alle mogelijke permutaties
+van de getallen van 1 tot 9. Door de sudoku op deze manier voor te stellen moeten we enkel nog de constraints van de kolommen
+en de blokken testen. De rij-constraint die stelt dat elk getal van 1 tot 9 in de rij moet voorkomen en er geen dubbels
+mogen zijn, wordt immers ge\"impliceerd door het feit dat een rij in de sudoku nu wordt voorgesteld door een permutatie.
+
+Het opzetten van channeling constraints tussen deze beide viewpoints kan slechts in \'e\'en richting.
+Wanneer een rij een bepaalde permutatie als waarde neemt, dan wil dit natuurlijk zeggen dat de elementen van die
+rij uit het eerste viewpoint, de verschillende waardes in de permutatie als waarde hebben. Wanneer we in de
+andere richting echter voor de variabelen uit een rij waardes hebben, dan kan slechts in het geval dat deze 
+waardes ook effectief een permutatie van 1 tot 9 zijn, een waarde voor de eerste rij uit het tweede viewpoint bepaald worden.
+Het grote voordeel van de tweede viewpoint is de onmiddellijke implicatie van de rij-constraint. Het is dan ook
+vooral in het zoek-gedeelte van het proces dat dit een belangrijk verschil maakt. In de eerste viewpoint zal elke
+variabele apart ge\"instantieerd worden. In de tweede viewpoint zullen echter alle variabelen op een rij in \'e\'en 
+keer ge\"instantieerd worden. In de implementatie van de tweede viewpoint kan je met andere woorden nog steeds werken
+met dezelfde datastructuur als in de eerste viewpoint, maar tijdens het zoek-proces telkens per rij een permutatie
+invullen. Omwille van de eenvoud van deze channeling constraints hebben we er dan ook voor gekozen deze niet
+effectief te implementeren.
+
+Mogelijke criteria om viewpoints te beoordelen zijn natuurlijk de computationele complexiteit waarmee de berekening
+van de sudoku-oplossing te kampen heeft, of bijvoorbeeld het aantal backtracks of logische inferenties waarmee 
+een implementatie van een viewpoint tot een oplossing komt. Een belangrijk punt dat hiervoor naar boven kwam tijdens
+deze opdracht is het volgende. Naast de bovenstaande viewpoint bedachten we eveneens een andere derde viewpoint.
+De variabelen in deze viewpoint stellen de 9 verschillende getallen voor. Het domein voor elk van deze 9 variabelen
+zijn alle mogelijke permutaties van 1 tot 9. Zo'n permutatie wordt voorgesteld als een lijst van 9 getallen. Elk getal stelt
+de plaats voor in de sudoku puzzel. De permutatie \verb|[2,5,8,3,6,9,1,4,7]| als waarde voor getal 5, stelt met 
+andere woorden voor dat de 5 in de sudoku puzzel in rij 1 op de tweede kolom staat, in rij 2 op de vijfde kolom, 
+enzoverder. Dit is natuurlijk een zeer alternatieve zienwijze op het sudoku-probleem. Bij de implementatie merkten
+we echter dat het bepalen van de verschillende blokwaarden zeer vertragend werkte op de uitvoering. Het gevolg
+van dit viewpoint is immers dat de waardes die bij de verschillende blokken horen veel indirecter in 
+de datastructuur vervat zitten. Aangezien dit een belangrijk aspect is van het sudoku-spel, leek
+deze viewpoint ons dan ook uiteindelijk niet geschikt om een sudoku-oplosser in te schrijven. 
+
+\subsubsection{Programs}
+\paragraph{ECLiPSe}
+\begin{description}
+ \item[Viewpoint 1]:
+In dit eerste viewpoint stellen we de sudoku voor als een lijst van 9 lijsten met telkens 9 variabelen.
+De constraints zetten we als volgt op. Voor elk van deze 9 lijsten moeten de getallen verschillend zijn.
+Dit zijn de zogenoemde row-constraints. Vervolgens worden de kolommen en blokken uit deze lijsten ge\"extraheerd.
+Ook in deze lijsten moeten alle getallen verschillend zijn. De i-de kolom wordt geconstrueerd door telkens 
+het element op i-de plaats bij de verschillende rijen te selecteren. Het (I,J)-de blok wordt als volgt
+geconstrueerd. Elk blok wordt voorgesteld door een coordinatenpaar (I,J). Beide coordinaten lopen
+van 0 tot 2. Er zijn in deze voorstelling 9 blokken van linksbovenaan (0,0) tot
+rechtsonderaan (2,2). De rijen uit het blok worden als volgt berekend : X is 3*I + M. Met M gaande
+van 1 tot 3. Voor de blokken met I = 0 (de drie blokken bovenaan de sudoku), komen we voor de X 
+dus uit op rijen 1, 2 en 3. De kolommen uit het blok worden als volgt berekend : Y is 3*J + N. Met N gaande
+van 1 tot 3. Voor de blokken met J = 0 (de drie blokken links), komen we voor de Y dus uit op de kolommen
+1,2 en 3. De combinatie van deze X en Y geven ons de coordinaten van de variabelen uit de verschillende
+blokken in de sudoku. Het gehele algoritme kunnen we zien in algoritme \ref{block}.
+\begin{algorithm}
+\caption{blockConstraints(Sudoku)}
+\label{block}
+\begin{verbatim}
+
+  (multifor([I,J],[0,0],[2,2]),param(Sudoku)
+  do
+     (multifor([M,N],[1,1],[3,3]),param(Sudoku,I,J),
+     foreach(Var,Block)
+     do
+          X is 3*I + M,
+          Y is 3*J + N,
+          selectElement(Sudoku,X,Row),
+          selectElement(Row,Y,Var)
+     ),
+  allDifferent(Block)
+  ).
+\end{verbatim}
+\end{algorithm}
+Naast het opstellen van deze constraints is het in dit eerste viewpoint van belang op welke manier
+de methode om te bepalen of een lijst bestaat uit allemaal verschillende getallen, wordt ge\"implementeerd.
+Dit zullen we verder bespreken wanneer we de verschillende standpunten 
+die we hebben aangenomen (Passive, Suspend en IC), uiteenzetten. Vooraleer we hier toe overgaan 
+dienen we nog uit te leggen hoe het zoeken in dit eerste viewpoint in zijn werk gaat. Voor elke variabele
+uit elke rij zal een \verb|member(V,[1,2,3,4,5,6,7,8,9])| uitgevoerd worden. Op deze manier wordt de gehele
+sudoku ingevuld.
+        \begin{description}
+         \item[Passive] Zoals vermeld hebben we eveneens een nai\"eve en passieve versie van de sudoku oplosser geschreven.
+                Het belangrijkste aspect naast de reeds vermelde constraints van deze oplosser is het implementeren van een methode om te bepalen of een 
+                lijst bestaat uit allemaal verschillende getallen. Hiervoor gebruiken we de fromto-functionaliteit
+                van ECLiPSe. Hiermee gaan we heel de lijst af, en bekijken we telkens per element of het niet gelijk is
+                aan de resterende elementen uit de lijst. Zie hiervoor algoritme \ref{allDifferent}.
+
+\begin{algorithm}
+\caption{allDifferent(List)}
+\label{allDifferent}
+\begin{verbatim}
+
+    (fromto(List,[El|Rest],Rest,[])
+    do
+        (fromto(Rest,[X|T],T,[]),
+        param(El)
+        do
+            El \= X
+        )
+    )
+\end{verbatim}
+\end{algorithm}
+
+         \item[Suspend] In de suspend versie van deze oplosser zijn er slechts twee verschillen. Eerst en vooral worden
+                eerst de constraints opgezet vooraleer de zoek-methode wordt uitgevoerd. Ten tweede wordt er in de
+                alldifferent-methode nu gebruikt gemaakt van een core constraint \verb|El #\= X|. In alle andere opzichten
+                is dit gelijk aan de vorige versie.
+         \item[IC] Met betrekking tot de IC versie zijn er drie verschillen met de vorige (suspend versie). Ten
+                eerste bevat IC een eigen implementatie van allDifferent, en hoeven we dit niet zelf te implementeren.
+                Ten tweede moeten we voor we de constraints opzetten ook de domeinen van alle variabelen initialiseren
+                door middel van een \verb|Var::1..9|. Ten derde hoeven we een variabele niet te selecteren met
+                een \verb|member(V,[1,2,3,4,5,6,7,8,9])|, maar moeten we dit doen met een \verb|indomain(Var)|.
+                \begin{description}
+                 \item[Forward Checking] Om de forward checking versie van allDifferent te gebruiken, hoeven we slechts
+                        de \verb|lib(ic)| in te laden door middel van een \verb|:- lib(ic).|.
+                 \item[Global] Om de global versie van allDifferent te gebruiken, moeten we ze als
+                        volgt aanroepen \verb|ic_global:alldifferent(List)|.
+                \end{description}
+                In combinatie met deze verschillende implementaties van allDifferent, kunnen we in IC ook een aantal
+                optimalisaties doorvoeren met betrekking tot value en variable ordening.
+                \begin{description}
+                 \item[First Fail] Deze optie zetten we aan door voor het aanroepen van de \verb|indomain(Var)|, 
+                        alle variabelen van de sudoku in \'e\'en lijst te steken en te selecteren door middel van
+                        \verb|delete(Var,Vars,Rest,0,first_fail)|.
+                 \item[Middle Out] Deze optie zetten we aan door voor het aanroepen van de \verb|indomain(Var)|, 
+                        alle variabelen van de sudoku in \'e\'en lijst te steken en de middelste variabelen
+                        vooraan te steken door middel van een \verb|middle_out(Result,MOList)|. Zie hiervoor algoritme \ref{middleout}.
+\begin{algorithm}
+\caption{middleout(List, MOutList)}
+\label{middleout}
+\begin{verbatim}
+:- lib(lists).
+middle_out(List, MOutList) :-
+  halve(List, FirstHalf, LastHalf),
+  reverse(FirstHalf, RevFirstHalf),
+  splice(LastHalf, RevFirstHalf, MOutList).
+\end{verbatim}
+\end{algorithm}
+                 \item[Middle Positions] Deze optie zetten we aan door \verb|indomain(Var,Middle)| aan te roepen. 
+                \end{description}
+        \end{description}
+Voor de experimenten met de verschillende soorten implementaties van dit eerste viewpoint verwijzen we 
+naar sectie \ref{exps} op pagina \pageref{exps}.
+ \item[Viewpoint 2]:
+Zoals reeds vermeld bestaat het tweede viewpoint uit een voorstelling van 9 permutaties. Op deze manier
+wordt de row-constraint, die stelt dat alle getallen op een rij verschillend en van 1 tot 9 moeten zijn, 
+door de voorstelling op zich bewerkstelligt. Voor de implementatie van dit viewpoint kunnen we dan ook
+integraal de kolomConstraints en de blockConstraints overnemen uit de vorige viewpoint. Met betrekking
+tot de permutaties moeten we het volgende doen. In plaats van voor elke variabele uit een rij apart
+een waarde te kiezen, bepalen we de waardes van elke variabele op een rij in \'e\'en keer. We willen namelijk
+dat de rij een waarde neemt uit het domein van alle mogelijk permutaties van 1 tot 9. Zie hiervoor algoritme
+\ref{permsearch}.
+\begin{algorithm}
+\caption{search(Sudoku)}
+\label{permsearch}
+\begin{verbatim}
+  (foreach(Row, Sudoku)
+  do
+    permutation(Row)
+  ).
+\end{verbatim}
+\end{algorithm}
+Voor de passieve en suspend versie wordt deze permutatie als volgt ge\"implementeerd. We selecteren
+een element uit de lijst die we moeten permuteren, verwijderen dit element, en permuteren de rest
+van het domein. We verwijzen hiervoor naar algoritme \ref{perm}.
+\begin{algorithm}
+\caption{permutation}
+\label{perm}
+\begin{verbatim}
+permutation([],[]) :-
+  !.
+permutation(Original, [X|Rest]) :-
+  member(X,Original),
+  del(X,Original,Result),
+  permutation(Result, Rest).
+\end{verbatim}
+\end{algorithm}
+Een belangrijk element dat we met betrekking tot deze tweede viewpoint moeten vermelden is het volgende.
+Door telkens een permutatie in te vullen als de elementen van een rij, doen we in principe aan actieve propagatie.
+We gaan immers voor elk volgend element uit de variabele de waardes van de vorige variabelen uitsluiten.
+Op deze manier maken we onze passieve en suspend versie van de sudoku oplosser duidelijk beter. We gaan immers
+niet meer proberen om hetzelfde getal in te vullen in dezelfde rij. Een gevolg hiervan is evenwel dat de IC
+versie van dit viewpoint niet meer significant kan verschillen van het eerste viewpoint. IC doet immers reeds
+vanzelf aan actieve propagatie, en zal in die zin zowiezo permutaties invullen in de rijen van de sudoku (ook omdat
+we de sudoku invullen rij per rij in onze zoekmethode). Om deze reden
+hebben we voor de IC versie van dit tweede viewpoint niet alle verschillende optimalisaties ge\"implementeerd. We 
+verwachten immers dat de resultaten voor IC in dit tweede viewpoint niet significant zullen verschillen
+van het eerste viewpoint. 
+
+Voor de experimenten met de verschillende soorten implementaties van dit tweede viewpoint verwijzen we 
+naar sectie \ref{exps} op pagina \pageref{exps}.
+\end{description}
+
+\paragraph{CHR}.\newline
+De basis implementatie van de sudoku oplosser in CHR gaat als volgt. Eerst en vooral lezen we de puzzel in 
+in de constraint store, vervolgens zullen we onze zoekmethode opzetten :
+\begin{verbatim}
+solve(P) <=> readSudoku(P), search.
+\end{verbatim}
+Van zodra de \verb|readSudoku(P)| constraint in de store terecht komt, zal de CHR solver nagaan of er regels
+zijn die toepasbaar zijn op deze constraint. De regel die zal uitgevoerd worden is de volgende :
+\begin{verbatim}
+readSudoku([Row1,Row2,Row3,Row4,Row5,Row6,Row7,Row8,Row9]) 
+        <=> veryeasy(S), sudoku(S), addValues(1,1), 
+            readRow(1,Row1), readRow(2,Row2), readRow(3,Row3), 
+            readRow(4,Row4), readRow(5,Row5), readRow(6,Row6), 
+            readRow(7,Row7), readRow(8,Row8), readRow(9,Row9).
+\end{verbatim}
+In de bovenstaande regel vervangen we de \verb|readSudoku(P)| door het volgende. Eerst en vooral zetten we
+een lege sudoku-datastructuur op. Vervolgens zetten we voor elk van de 81 variabelen in een sudoku een
+variabele in de constraint store (\verb|addValues(1,1)|). Dit zal resulteren in een \verb|values(X,Y,[1,2,3,4,5,6,7,8,9])| constraint
+voor elke variabele in het spel. Voorlopig is er geen enkele regel die toepasbaar is op deze variabelen in
+de store. Vervolgens lezen we de elementen van de sudoku in (\verb|readRow(X,RowX)|). Wanneer we met andere woorden
+een ingevulde waarde tegenkomen zullen we de \verb|values(X,Y,[1,2,3,4,5,6,7,8,9])| vervangen
+door een \verb|assigned(X,Y,Value)|. Van zodra zulke assigned waarden in de constraint store
+terechtkomen kunnen de regels van het spel gevuurd worden. Voor de rij en kolomConstraints
+gaan we voor elke variabele met dezelfde rij of kolomwaarde de assigned waarde uit het
+domein van de variabele verwijderen (actieve propagatie):
+\begin{verbatim}
+%row constraint
+assigned(X,_,V) \ values(X,Y,List) 
+      <=> member(V,List) | del(V,List,Result),values(X,Y,Result). 
+
+%collumn constraint
+assigned(_,Y,V) \ values(X,Y,List) 
+      <=> member(V,List) | del(V,List,Result),values(X,Y,Result).
+\end{verbatim}
+Voor de blockConstraints doen we dit gelijkaardig. We gaan na of de variabele in dezelfde block
+voorkomt als de assigned waarde. Als dit het geval is verwijderen we de assigned waarde uit
+het domein van de variabele :
+\begin{verbatim}
+%block constraint
+assigned(X1,Y1,V) \ values(X2,Y2,List) <=> 
+  Xs is (X1-1)//3, Xs is (X2-1)//3,
+  Ys is (Y1-1)//3, Ys is (Y2-1)//3,
+  member(V,List)
+    |del(V,List,Result),values(X2,Y2,Result).
+\end{verbatim}
+Wanneer uiteindelijk alle waardes zijn ingelezen in het spel, zullen alle domein van variabelen
+die hiermee in verbinding staan actief gepropageerd zijn. Vervolgens is het slechts zaak 
+voor de overblijvende variabelen een waarde te kiezen (search). We zetten dan opnieuw
+een waarde op \verb|assigned(X,Y,Value)|. Op zijn beurt zal dit eveneens aanleiding geven
+tot het vuren van de verschillende propagatieregels. Wanneer een variabele uiteindelijk
+slechts \'e\'en waarde over heeft in zijn domein, zetten we deze ook op \verb|assigned(X,Y,Value)|.
+Wanneer een variabele echter een leeg domein krijgt, dan wil dit zeggen dat er ergens
+een foute keuze is gemaakt. We moeten de CHR solver dus dwingen tot een backtrack :
+\begin{verbatim}
+values(_,_,[]) <=> fail.
+\end{verbatim}
+De basis structuur van het zoeken is als volgt :
+\begin{verbatim}
+search, values(X,Y,List) <=> search(X,Y,List), search.
+search <=> true.
+\end{verbatim}
+Wanneer de search constraint in de constraint store terecht komt, voeren we \'e\'en search uit.
+Dit zal aanleiding geven tot het vuren van de verschillende regels in verband met actieve
+propagatie. Slechts wanneer dit afgelopen is, zetten we opnieuw een search in de store, zodat
+het proces opnieuw kan beginnen. Wanneer er geen variabelen meer in de store zitten, 
+hebben we de oplossing bereikt en verwijderen we de search uit de store.
+De implementatie van de searchmethode is het enige verschil tussen het eerste en het tweede
+viewpoint.
+\begin{description}
+ \item[Viewpoint 1] In het eerste viewpoint moeten we gewoon per variabele een waarde uitkiezen.
+        Het is niet van belang in welke volgorde we dit uitvoeren:
+\begin{verbatim}
+search(X,Y,List) :-
+  member(V,List),
+  (
+    assigned(X,Y,V)
+  ;
+    del(V,List,Result),
+    values(X,Y,Result)
+  ).
+\end{verbatim}
+        We kiezen een waarde uit het domein van de variabele, en zetten de variabele op \verb|assigned(X,Y,Value)|.
+        Dit zal zoals gezegd aanleiding geven tot het vuren van de regels van het spel. Wanneer dit een backtrack
+        tot gevolg zou hebben, zal de searchmethode de gekozen waarde uit het domein van de variabele verwijderen,
+        en de variabel terug toevoegen aan de constraint store.
+ \item[Viewpoint 2]
+        In het tweede viewpoint moeten we telkens een permutatie invullen per rij, in plaats van een waarde
+        per variabele te kiezen. Onze zoekmethode heet hier \verb|permute(Y)|, waarbij Y staat voor de rij
+        die we moeten permuteren. Wanneer deze \verb|permute(Y)| in de constraint store terecht komt,
+        zullen we voor elke variabele uit de rij onmiddellijk een waarde kiezen. Omdat het kiezen van de
+        eerste waarde, onmiddellijk zal aanleiding geven tot het vuren van de regels van het spel, zullen
+        we op deze manier uiteindelijk een permutatie bereiken. Het enige verschil met de vorige versie, is
+        dus dat we de variabelen hier per rij gaan instantieren:
+\begin{verbatim}
+permute(Y) \ values(X,Y,List) <=> takeValue(X,Y,List).
+permute(_) <=> true.
+
+takeValue(X,Y,List) :-
+  member(V,List),
+  (
+    assigned(X,Y,V)
+  ;
+    del(V,List,Result),
+    values(X,Y,Result)
+  ).
+\end{verbatim}
+\end{description}
+Voor de experimenten met de implementaties van deze twee viewpoints verwijzen we 
+naar sectie \ref{exps} op pagina \pageref{exps}.
+
+\subsection{Experiments}\label{exps}
+\begin{description}
+ \item[Viewpoint 1]:
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+& \begin{sideways}V1 Standard\end{sideways} & \begin{sideways}V1 Suspend\end{sideways} & \begin{sideways}V1 IC\end{sideways} 
+& \begin{sideways}V1 IC global\end{sideways} & \begin{sideways}V1 IC global gac\end{sideways} & \begin{sideways}V1 IC first fail\end{sideways} 
+& \begin{sideways}V1 IC middle out\end{sideways} & \begin{sideways}V1 IC middle\end{sideways} & \begin{sideways}V1 middle out firt fail\end{sideways} 
+& \begin{sideways}V1 middle out first fail middle\end{sideways} & \begin{sideways}V1 CHR\end{sideways}\\
+\hline
+\hline                     
+medium(P)               & & & & & & & & & & & \\
+difficult(P)            & & & & & & & & & & & \\
+verydifficult(P)        & & & & & & & & & & & \\
+expert(P)               & & & & & & & & & & & \\
+lambda(P)               & & & & & & & & & & & \\
+hard17(P)               & & & & & & & & & & & \\
+symme(P)                & & & & & & & & & & & \\
+eastermonster(P)        & & & & & & & & & & & \\
+tarek052(P)             & & & & & & & & & & & \\
+goldennugget(P)         & & & & & & & & & & & \\
+coloin(P)               & & & & & & & & & & & \\
+\hline
+\end{tabular}
+\end{center}
+ \item[Viewpoint 2]:
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+& \begin{sideways}V2 Standard\end{sideways} & \begin{sideways}V2 Suspend\end{sideways} & \begin{sideways}V2 IC\end{sideways} 
+& \begin{sideways}V2 CHR\end{sideways}\\
+\hline
+\hline                     
+medium(P)               & & & & \\
+difficult(P)            & & & & \\
+verydifficult(P)        & & & & \\
+expert(P)               & & & & \\
+lambda(P)               & & & & \\
+hard17(P)               & & & & \\
+symme(P)                & & & & \\
+eastermonster(P)        & & & & \\
+tarek052(P)             & & & & \\
+goldennugget(P)         & & & & \\
+coloin(P)               & & & & \\
+\hline
+\end{tabular}
+\end{center}
+\end{description}

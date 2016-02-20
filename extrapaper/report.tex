@@ -1,0 +1,286 @@
+\documentclass[a4paper,11pt,english]{article}
+\usepackage{mystyle}
+
+\title{Advanced Programming Languages for AI\\ Task~3}
+%\subtitle{Task 3}
+\author{Karl Dox \and Li Quan  \and Nathan Vandecauter }
+%\subject{Verslag}
+\date{July 1, 2011}
+\bibliographystyle{abbrv}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This is the report for the (optional) task 3. We will briefly discuss both parts of this task. First, we give an overview of possible interesting topics with respect to A.I. 
+Second, we give a concrete example of the power of constraint programming by discussing the Survo puzzle in ECLiPSe.
+\end{abstract}
+\part{Task~3}
+\section{Introduction}
+This paper briefly discusses some aspects of Artificial Intelligence which could be interesting for a course `Advanced Programming Languages for AI'.
+
+Note that the selection of topics might be biased as all of them are based on tasks given in the course `Capita Selecta AI' of the year 2010--2011.
+
+\section{Stochastic/probabilistic programming}
+\begin{quote}
+ Although many ways have been proposed to model uncertain quantities, stochastic models have proved their flexibility and usefulness in diverse areas of science. 
+This is mainly due to solid mathematical foundations and theoretical richness of the theory of probability and stochastic processes, and to sound statistical techniques of using real data. \cite{shapiro}
+\end{quote}
+
+\subsection*{Optimization}
+For instance, consider the Traveling Tournament Problem \cite{ttp,website}. This is a very hard problem (even for small problem instances) as it combines two problems \cite{Benoist01lagrangerelaxation}: first, the generation of schedules, and second, the optimization of those schedules. While for instance constraint programming techniques have been successfully used for the former, alone they do not suffice to incorporate the latter aspect \cite{constraintscheduling}. 
+
+At first integer programming techniques \cite{combinedttp} were used for the optimization aspect, resulting in a hybrid algorithm. However, soon stochastic programming techniques such as simulated annealing \cite{simulatedannealing} have been succesfully used which performed significantly better \cite{ttpquan,paper,paper2}. To date, these kind of search algorithms achieve (one of the) best results for many problem instances on~\cite{website}.
+
+\subsection*{Search}
+Another example would be searching embeddings in random graphs. Searching an exact number of a certain pattern on massive graphs is computationally infeasible; randomized algorithms also are reported to leverage these problems.~\cite{Furer:2008:ACE:1429791.1429826,furerquan}.
+
+\subsection*{Modeling/Inference}
+The above given examples focus more on stochastic optimization and search which is a very interesting subfield of artificial intelligence/optimization in itself. 
+
+Of course, there also have been probabilistic programming languages developed, e.g.~Problog \cite{problog}, which are more focused on modeling the uncertainties of the world. This allows the user to make inductive inference which have a probability associated: an interesting application is in the area of robotics \cite{golog} and multi-agent systems. Also extensions of Problog such as DTProblog \cite{dtproblog} (and the closely related Markov Decision Processes) and CP-Logic \cite{cplogic} can be studied.
+
+
+\section{Programming languages}
+It is important to note that Artificial Intelligence is a very broad topic. A selection of programming languages is thus always very difficult.\footnote{For an interesting discussion on `good' programming languages for AI, see for instance\\ \url{http://stackoverflow.com/questions/82036/what-is-a-good-programming-language-for-ai}.} One of the most important things to consider is the need to combine different strategies (and thus also programming languages) \cite{progai,Neumann1} based on the task (domain) at hand.
+ 
+
+\section{Constraint programming in imperative languages}
+While for instance ECLiPSe integrates constraints in a logic
+programming language (Prolog) in a ``natural'' way, sometimes---mostly for performance issues---users want to benefit from the declarative paradigm using imperative languages such as C++ (e.g.~Gecode) \cite{cp4im_aaai10_nectar}. A specific example would be using constraint programming for pattern mining \cite{cpquan}.
+
+
+\section{Conclusion}
+It is clear that selecting a subset of good topics is not easy. While most of the topics discussed and also given in the course are mostly ``academical'' topics --- which are interesting on their own, it would also be refreshing to actually use some AI programming language coupled with a more ``real-world'' project. However, this would also require more effort and it might not be so easy to organize.
+
+
+\clearpage
+
+\part{Task~4}
+As an example of the power of constraint programming, we consider the Survo puzzle \cite{wiki:survo}.
+
+\section{Introduction}
+This introduction is taken from \cite{survo}.
+\begin{quote}
+A class of cross sum puzzles called Survo puzzles will be studied. Survo puzzles
+are somewhat related to Kakuro cross sum puzzles but played on a simple, open
+rectangular grid and without limiting to integers from 1 to 9.
+
+In a Survo puzzle the task is to fill an $m \times n$-table by integers $1, 2, \ldots , mn$ so
+that each of these numbers appears only once and their row and column sums are
+equal to integers given on the bottom and the right side of the table. Often some
+of the integers are given readily in the table in order to guarantee uniqueness of the
+solution and/or for making the task easier.
+\end{quote}
+
+As an illustration, consider the following example and its solution:
+
+\begin{minipage}{0.5\textwidth}
+\[
+\begin{array}{ |c | c | c | c || c | } \hline
+ 	 &	6 &	&	&	30\\\hline
+ 	& 	&	&	&	18\\\hline
+	 &	&	3 	&	&30\\ \hline\hline
+	27 &	16 &	10 	&25 & \\	\hline
+\end{array}
+\]
+\end{minipage}
+\hfill
+\begin{minipage}{0.5\textwidth}
+\[
+\begin{array}{ |c | c | c | c || c | } \hline
+	12 &	6 &	2 &	10 &	30 \\\hline
+	8 &	1 &	5 &	4 &	18\\\hline
+	7 &	9 &	3 &	11 &	30\\\hline\hline
+	27 &	16 &	10 &	25 &	\\\hline
+\end{array}
+\]
+\end{minipage}
+
+\section{Constraint programming}
+It should be clear that this problem is very easy to solve using constraint programming. The program takes less than 20 lines of codes. We used the very useful matrix\_util library for the representation of the board, which allows to directly feed the columns and rows to the ic\_global sumlist constraint. Again, the well-known alldifferent constraint is used.
+
+\begin{lstlisting}
+:- lib(ic).
+:- lib(ic_global).
+:- lib(matrix_util).
+:- import sumlist/2, alldifferent/1 from ic_global.
+
+%a survo puzzle!
+survo([X,Y], Board) :-
+	length(Y,N),length(X,M), Max is N*M,
+	matrix(N, M, Board, Cols),
+	flatten(Board,B),
+	B :: 1..Max, 
+	alldifferent(B),
+	(foreach(Row,Board), foreach(RowSum,Y) do
+		sumlist(Row,RowSum)
+	),
+	(foreach(Col,Cols), foreach(ColSum,X) do
+		sumlist(Col,ColSum)
+	),
+	term_variables(B,Vars),
+	labeling(Vars).
+\end{lstlisting}
+
+\section{Experiments}
+We also tested our program on a few examples. In particular, we tested it especially on open Survo puzzles (where no hints are given~\cite{opensurvo}).
+We refer to the full program given in \autoref{survofullprogram} for the test data.
+It is clear that this is a very efficient approach and even puzzles which are almost completely impossible for humans, are solved easily (puzzle~7 did take 40\,s but the rating on the \url{http://www.survo.fi/puzzles/} did confirm that this was an extremely difficult one).
+\begin{verbatim}
+*** Puzzle 1, Horizontal [21, 10, 18, 29],  Vertical [24, 15, 39]
+Took 0.03 seconds to solve this one:
+[7, 3, 5, 9]
+[4, 1, 2, 8]
+[10, 6, 11, 12]
+
+*** Puzzle 2, Horizontal [21, 10, 18, 29],  Vertical [24, 15, 39]
+Took 0.00 seconds to solve this one:
+[7, 3, 5, 9]
+[4, 1, 2, 8]
+[10, 6, 11, 12]
+
+*** Puzzle 3, Horizontal [51, 42, 26, 17],  Vertical [51, 36, 32, 17]
+Took 0.07 seconds to solve this one:
+[15, 16, 12, 8]
+[14, 11, 7, 4]
+[13, 10, 6, 3]
+[9, 5, 1, 2]
+
+*** Puzzle 4, Horizontal [42, 51, 63, 21, 33],  Vertical [38, 63, 83, 26]
+Took 4.73 seconds to solve this one:
+[8, 9, 14, 2, 5]
+[13, 16, 18, 6, 10]
+[17, 19, 20, 12, 15]
+[4, 7, 11, 1, 3]
+
+*** Puzzle 5, Horizontal [49, 31, 38, 18],  Vertical [17, 54, 40, 25]
+Took 0.10 seconds to solve this one:
+[8, 3, 4, 2]
+[16, 13, 15, 10]
+[14, 9, 12, 5]
+[11, 6, 7, 1]
+
+*** Puzzle 6, Horizontal [48, 54, 30, 35, 43],  Vertical [17, 38, 85, 70]
+Took 10.46 seconds to solve this one:
+[4, 7, 1, 2, 3]
+[9, 10, 5, 6, 8]
+[19, 20, 13, 15, 18]
+[16, 17, 11, 12, 14]
+
+*** Puzzle 7, Horizontal [48, 30, 69, 40, 23],  Vertical [62, 27, 80, 41]
+Took 39.30 seconds to solve this one:
+[14, 9, 19, 12, 8]
+[6, 2, 13, 5, 1]
+[18, 15, 20, 16, 11]
+[10, 4, 17, 7, 3]
+
+*** Puzzle 8, Horizontal [41, 19, 51, 33, 66],  Vertical [72, 63, 19, 56]
+Took 4.38 seconds to solve this one:
+[15, 7, 17, 13, 20]
+[12, 6, 16, 10, 19]
+[3, 1, 4, 2, 9]
+[11, 5, 14, 8, 18]
+
+*** Puzzle 9, Horizontal [24, 33, 38, 57, 58],  Vertical [20, 44, 65, 81]
+Took 6.98 seconds to solve this one:
+[1, 2, 3, 5, 9]
+[4, 6, 7, 14, 13]
+[8, 10, 12, 18, 17]
+[11, 15, 16, 20, 19]
+
+*** Puzzle 10, Horizontal [12, 17, 28, 37, 40, 45, 52],  Vertical [50, 67, 114]
+Took 0.87 seconds to solve this one:
+[1, 3, 5, 7, 8, 11, 15]
+[2, 4, 6, 12, 13, 14, 16]
+[9, 10, 17, 18, 19, 20, 21]
+\end{verbatim}
+
+
+\clearpage
+
+%% Define a new 'leo' style for the package that will use a smaller font.
+\makeatletter
+\def\url@leostyle{%
+  \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\footnotesize\ttfamily}}}
+\makeatother
+%% Now actually use the newly defined style.
+\urlstyle{leo}
+
+\bibliography{biblio}
+\clearpage
+
+\appendix
+\section{Survo puzzle, ECLiPSe\label{survofullprogram}}
+\begin{lstlisting}
+:- lib(ic).
+:- lib(ic_global).
+:- lib(matrix_util).
+:- import sumlist/2, alldifferent/1 from ic_global.
+
+
+%a survo puzzle! see http://en.wikipedia.org/wiki/Survo_Puzzle
+survo([X,Y], Board) :-
+	length(Y,N),length(X,M), Max is N*M,
+	matrix(N, M, Board, Cols),     %check the format of Board or create it and also make list of cols
+	flatten(Board,B),
+	B :: 1..Max, 
+	alldifferent(B),
+	
+	(foreach(Row,Board), foreach(RowSum,Y) do
+		sumlist(Row,RowSum)
+	),
+	(foreach(Col,Cols), foreach(ColSum,X) do
+		sumlist(Col,ColSum)
+	),
+	
+	term_variables(B,Vars),
+	labeling(Vars).
+
+
+%% solves all example puzzles, should take ~ 1 min
+test :- findall((Id,P,[X,Y]),problem(Id,P,[X,Y]), List),
+		( foreach((Id,P,[X,Y]),List) do
+			printf("*** Puzzle %d, Horizontal %w,  Vertical %w\n",[Id,X,Y]),
+			statistics(times, [T0|_]),	survo([X,Y],P),	statistics(times, [T1|_]),
+    		Secs is T1-T0,
+    		printf("Took %.2f seconds to solve this one:\n", [Secs]),
+			pretty_print(P)
+		).
+		
+%%%some test data
+%problem(Id, Initial, [Horizontal, Vertical])
+
+problem(1, _, [[21,10,18,29], [24,15,39]]).
+problem(2, P, [[21,10,18,29], [24,15,39]]) :-
+	P = [ [7,_,5,_],
+		  [_,1,_,8],
+		  [_,_,11,_]
+		].
+
+problem(3, _, [[51,42,26,17], [51,36,32,17]]).
+
+%some more difficult http://www.survo.fi/puzzles/
+problem(4, _, [[42,51,63,21,33],[38,63,83,26]]).
+problem(5, _, [[49,31,38,18],[17,54,40,25]]).
+problem(6, _, [[48,54,30,35,43],[17,38,85,70]]).
+problem(7, _, [[48,30,69,40,23],[62,27,80,41]]). %this one is very difficult
+problem(8, _, [[41,19,51,33,66],[72,63,19,56]]).
+problem(9, _, [[24,33,38,57,58],[20,44,65,81]]).
+problem(10, _, [[12,17,28,37,40,45,52],[50,67,114]]).
+
+%%
+
+pretty_print(P) :-
+	( foreach(Row,P) do
+		writeln(Row)
+	), nl.
+\end{lstlisting}
+
+
+
+\end{document}
+
+
+	
+

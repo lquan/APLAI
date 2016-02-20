@@ -1,0 +1,147 @@
+
+
+
+\section{Maximum Density Still Life}
+\subsection{Discussion}
+\subsubsection{ECLiPSe}
+The formulation of the problem is as explained in \cite{paper_still,paper_still2} almost a trivial exercise in constraint programming.
+The main constraints of the problem are shown:
+\begin{lstlisting}
+% current cell and its neighbours	
+Nbs #= ( Board[X-1,Y-1]  + Board[X,Y-1] + Board[X+1,Y-1] + 
+	 Board[X-1,Y]    +  		  Board[X+1,Y]   + 
+	 Board[X-1,Y+1]  + Board[X,Y+1] + Board[X+1,Y+1] ),
+
+% live cell must be kept alive		 
+Board[X,Y] => ( Nbs #>= 2 and Nbs #=<3 ),	 
+% dead cell must stay dead
+neg(Board[X,Y]) => Nbs #\= 3
+\end{lstlisting}
+
+The symmetry breaking in \cite{paper_still,paper_still2} can also be easily written.
+Additionally, the coupling with external solvers for the linear programming allows to use a hybrid solver, which should perform considerably better.
+
+\subsubsection{CHR}
+We used the given starting program skeleton in CHR.
+While the complete program is also very readable, the approach taken does require a complete different way of thinking. Also in general, the symmetry breaking constraints seem much more difficult to write, as is the coupling with an linear programming interface.
+
+
+
+\subsubsection{JESS}
+In essence, the same solution as for Sudoku could be used: Java for
+input and ``guessing''/backtracking; and JESS would make use of rules to
+propagate as much as possible. Many libraries exist for Java for optimization so a combination with a linear programming package would be possible, but the full integration with the rule handling would not be so trivial.
+
+\subsubsection{Alternatives}
+Maximum density still life has been studied intensively and various specialized optimizations have been proposed, e.g.~\cite{upperbound} and \cite{bdd}
+
+\subsection{Viewpoints and programs}
+
+\subsection{Experiments}
+Experiments in ECLiPSe for MDSL were performed on the PC's of the computer labo's; for CHR again the same configuration as above.
+
+\subsubsection{ECLiPSe}
+
+\subsubsection{CHR}
+\begin{verbatim}
+?- time(mdsl(2)).
+trying_label(4)
+0000
+0110
+0110
+0000
+% 35,617 inferences, 0.010 CPU in 0.014 seconds (71% CPU, 3561700 Lips)
+label(4)
+true.
+
+?- time(mdsl(3)).
+trying_label(6)
+00000
+01100
+01010
+00110
+00000
+% 87,504 inferences, 0.020 CPU in 0.024 seconds (82% CPU, 4375200 Lips)
+label(6)
+true. 
+\end{verbatim}
+
+\begin{verbatim}
+?- time(mdsl(4)).
+trying_label(11)
+trying_label(10)
+trying_label(9)
+trying_label(8)
+000000
+011000
+010100
+001010
+000110
+000000
+% 13,781,406 inferences, 2.290 CPU in 2.298 seconds (100% CPU, 6018081 Lips)
+label(8)
+true.
+\end{verbatim}
+
+
+\begin{verbatim}
+?- time(mdsl(5)).
+trying_label(16)
+0000000
+0110110
+0110110
+0000000
+0110110
+0110110
+0000000
+% 289,178 inferences, 0.050 CPU in 0.060 seconds (83% CPU, 5783560 Lips)
+label(16)
+true.
+\end{verbatim}
+
+\begin{verbatim}
+?- time(mdsl(6)).
+trying_label(22)
+trying_label(21)
+trying_label(20)
+trying_label(19)
+trying_label(18)
+00000000
+01100000
+01010110
+00110110
+00000000
+00110110
+00110110
+00000000
+% 4,364,392,071 inferences, 713.940 CPU in 716.391 seconds (100% CPU, 6113108 Lips)
+label(18)
+true.
+\end{verbatim}
+
+\begin{verbatim}
+?- time(mdsl(7)).
+trying_label(29)
+trying_label(28)
+000000000
+011011010
+001010110
+010010000
+011101110
+000010010
+011010100
+010110110
+000000000
+% 45,721,661,079 inferences, 7383.120 CPU in 7405.261 seconds (100% CPU, 6192729 Lips)
+label(28)
+true.
+
+\end{verbatim}
+
+\subsubsection{Conclusion}
+While CHR is not able to solve instances greater than $n=6$ under 15 minutes, ECLiPSe is. However, \ldots 
+
+
+
+
+

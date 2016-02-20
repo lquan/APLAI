@@ -1,0 +1,90 @@
+\documentclass[a4paper,english,11pt,]{scrartcl}
+\usepackage{mystyle}
+
+\title{APLAI Assignment 2010-2011}
+%\subtitle{xx}
+\author{Karl Dox \and Li Quan \and Nathan Vandecauter}
+%\subject{Verslag}
+\date{June 1, 2011}
+\bibliographystyle{abbrv}
+
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+\end{abstract}
+%\begin{abstract}
+
+%\end{abstract}
+
+\tableofcontents
+\clearpage
+\section{Sudoku}
+\subsection{Discussion}
+Sudoku is a perfect example for which constraint programming is very easy and efficient to use. This arises automatically from the formulation of the Sudoku problem: each unit (a row, a column and a block) contains a permutation of 1--9. It is very easy to code this using the alldifferent constraint.
+
+Very naive approaches are also easy to describe, e.g.~brute force, or a random brute force solver, but are of course very inefficient. Interestingly, meta-heuristics such as simulated annealing have been fairly succesfully used to solve Sudoku's \cite{sudokusa}.
+\url{http://en.wikipedia.org/wiki/Sudoku_algorithms} actually gives a good overview of different techniques.
+
+\subsection{Viewpoints and Programs}
+Some viewpoints are shown in \cite{sudoku_constraint}.
+
+The criteria to judge wheter a viewpoint is a good one or not is based on efficiency and readability (complexity in terms of program structure).
+
+\subsection{Experiments}
+\autoref{tab:classiceclipse} shows the given Sudoku puzzles using the classic ECLiPSe implementation. It is clear that this is a very good approach: all puzzles took less than one second to solve. Moreover, we see that the first-fail ordering of variables is almost always better (the number of backtracks is in almost all cases (sometimes signifantly) reduced).
+
+\begin{table}[hbpt] %sidewaystable
+\centering
+  \begin{tabular}{l r r r r r}
+  \toprule
+       &  \multicolumn{2}{c}{input order} && \multicolumn{2}{c}{first-fail}\\ \cmidrule{2-3} \cmidrule{5-6}
+puzzle & run time (s) & backtracks && run time (s) & backtracks \\ \midrule
+medium 		& 0.00& 0 	&& 0.00& 0\\
+difficult 	& 0.00& 0 	&& 0.00& 0\\
+verydifficult 	& 0.00& 0	&& 0.00& 0\\
+expert 		& 0.01& 5	&& 0.00& 4\\
+lambda 		& 0.92& 10786	&& 0.13& 773\\
+hard17 		& 0.14& 1383 	&& 0.07& 476\\
+symme 		& 0.09& 548	&& 0.06& 377\\
+eastermonster 	& 0.12& 648	&& 0.09& 424\\
+tarek\_052  	& 0.01& 53	&& 0.01& 5\\
+goldennugget 	& 0.05& 295	&& 0.08& 354\\
+coloin 		& 0.12& 763	&& 0.13& 750\\
+hardest 	& 0.12& 648	&& 0.08& 424\\
+extra1  	& 0.29& 4229	&& 0.11& 871\\
+extra2 		& 0.42& 4236	&& 0.27& 1454\\
+extra3 		& 0.90& 10786	&& 0.13& 773\\
+extra4		& 0.25& 2856	&& 0.14& 1074\\
+\bottomrule
+  \end{tabular}
+\caption{Experiments classic Sudoku ECLiPSe.}
+\label{tab:classiceclipse}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+\section{Maximum Density Still Life}
+\subsection{Discussion}
+
+\subsection{Viewpoints and Programs}
+
+\subsection{Experiments}
+
+
+\clearpage
+\bibliography{biblio}
+
+\end{document}
+
+
+	
+

@@ -1,0 +1,79 @@
+\begin{thebibliography}{10}
+
+\bibitem{integersudoku}
+A.~Bartrlett, T.~Chartier, A.~Langville, and T.~Rankin.
+\newblock An integer programming model for the sudoku problem.
+\newblock {\em J. Online Math. \& Its Appl.}, 8(May 2008), 2008.
+
+\bibitem{paper_still}
+R.~Bosch and M.~Trick.
+\newblock Constraint programming and hybrid formulations for {Life}.
+\newblock {\em CP'01}, 2001.
+\newblock Workshop on Modelling and Problem Formulation (Formul ’01).
+
+\bibitem{paper_still2}
+R.~Bosch and M.~Trick.
+\newblock Constraint programming and hybrid formulations for three life
+  designs.
+\newblock {\em Annals of Operations Research}, 130:41--56, 2004.
+\newblock 10.1023/B:ANOR.0000032569.86938.2f.
+
+\bibitem{bdd}
+K.~Cheng and R.~Yap.
+\newblock Applying ad-hoc global constraints with the \texttt{case} constraint
+  to still-life.
+\newblock {\em Constraints}, 11:91--114, 2006.
+\newblock 10.1007/s10601-006-8058-9.
+
+\bibitem{upperbound}
+G.~Chu, P.~J. Stuckey, and M.~G. {De La Banda}.
+\newblock Using relaxations in maximum density still life.
+\newblock In {\em Proceedings of the 15th international conference on
+  Principles and practice of constraint programming}, CP'09, pages 258--273,
+  Berlin, Heidelberg, 2009. Springer-Verlag.
+\newblock \url{http://ww2.cs.mu.oz.au/~pjs/still-life/} [last accessed: May 31,
+  2011].
+
+\bibitem{sudokusa}
+R.~Lewis.
+\newblock Metaheuristics can solve {S}udoku puzzles.
+\newblock {\em Journal of Heuristics}, 13:387--401, August 2007.
+
+\bibitem{satsudoku}
+I.~Lynce and J.~Ouaknine.
+\newblock Sudoku as a {SAT} problem.
+\newblock In {\em Proceedings of the 9th International Symposium on Artificial
+  Intelligence and Mathematics, AIMATH 2006, Fort Lauderdale}. Springer, 2006.
+
+\bibitem{sudokualt}
+A.~Rossberg.
+\newblock Alice constraint tutorial. sudoku viewpoints., 2011.
+\newblock
+  \url{http://www.ps.uni-saarland.de/alice/manual/cptutorial/node20.html} [last
+  accessed: May 31, 2011].
+
+\bibitem{sudoku_constraint}
+H.~Simonis.
+\newblock Sudoku as a constraint problem.
+\newblock In {\em Modelling Workshop CP2005}, 2005.
+
+\bibitem{diabolical}
+{Sudoku of the day}.
+\newblock Diabolical puzzle for saturday 21st may, 2011.
+\newblock \url{http://www.sudokuoftheday.com/pages/s-o-t-d.php?day=7&level=5}
+  [last accessed: May 30, 2011].
+
+\bibitem{platinum}
+{tarek}.
+\newblock The hardest {Sudoku's}, 2011.
+\newblock
+  \url{http://forum.enjoysudoku.com/the-hardest-sudokus-new-thread-t6539.html}
+  [last accessed: May 30, 2011].
+
+\bibitem{wiki:sudoku}
+Wikipedia.
+\newblock Sudoku --- {W}ikipedia{,} the free encyclopedia, 2011.
+\newblock \url{http://en.wikipedia.org/wiki/Sudoku} [last accessed: May 30,
+  2011].
+
+\end{thebibliography}

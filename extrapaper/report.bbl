@@ -1,0 +1,131 @@
+\begin{thebibliography}{10}
+
+\bibitem{paper}
+A.~Anagnostopoulos, L.~D. Michel, P.~{Van Hentenryck}, and Y.~Vergados.
+\newblock A simulated annealing approach to the traveling tournament problem.
+\newblock {\em Journal of Scheduling}, 9:177--193, 2006.
+
+\bibitem{Benoist01lagrangerelaxation}
+T.~Benoist, F.~Laburthe, and B.~Rottembourg.
+\newblock Lagrange relaxation and constraint programming collaborative schemes
+  for travelling tournament problems.
+\newblock In {\em In CP-AI-OR'2001, Wye College}, pages 15--26, 2001.
+
+\bibitem{progai}
+D.~G. Bobrow and B.~Raphael.
+\newblock New programming languages for artificial intelligence research.
+\newblock {\em ACM Comput. Surv.}, 6:153--174, September 1974.
+
+\bibitem{cp4im_aaai10_nectar}
+L.~{De Raedt}, T.~Guns, and S.~Nijssen.
+\newblock Constraint programming for data mining and machine learning.
+\newblock In {\em AAAI}, pages 1671--1675, 2010.
+
+\bibitem{ttp}
+K.~Easton, G.~Nemhauser, and M.~Trick.
+\newblock The traveling tournament problem description and benchmarks.
+\newblock In {\em Proceedings of the 7th International Conference on Principles
+  and Practice of Constraint Programming}, volume 2239, pages 580--584, 2001.
+
+\bibitem{combinedttp}
+K.~Easton, G.~L. Nemhauser, and M.~A. Trick.
+\newblock Solving the travelling tournament problem: A combined integer
+  programming and constraint programming approach.
+\newblock In {\em PATAT}, pages 100--112, 2002.
+
+\bibitem{Furer:2008:ACE:1429791.1429826}
+M.~F{\"u}rer and S.~{Prasad Kasiviswanathan}.
+\newblock Approximately counting embeddings into random graphs.
+\newblock In {\em Proceedings of the 11th international workshop, APPROX 2008,
+  and 12th international workshop, RANDOM 2008 on Approximation, Randomization
+  and Combinatorial Optimization: Algorithms and Techniques}, APPROX '08 /
+  RANDOM '08, pages 416--429, Berlin, Heidelberg, 2008. Springer-Verlag.
+
+\bibitem{problog}
+A.~Kimmig, B.~Demoen, L.~{De Raedt}, V.~Costa, and R.~Rocha.
+\newblock On the implementation of the probabilistic logic programming language
+  {Problog}.
+\newblock {\em Theory Pract. Log. Program.}, 11:235--262.
+
+\bibitem{simulatedannealing}
+S.~Kirkpatrick, J.~D. Gelatt, and M.~P. Vecchi.
+\newblock Optimization by simulated annealing.
+\newblock {\em Science}, 220(4598):671--680, 1983.
+
+\bibitem{golog}
+H.~J. Levesque, R.~Reiter, Y.~Lesp{\'e}rance, F.~Lin, and R.~B. Scherl.
+\newblock Golog: A logic programming language for dynamic domains.
+\newblock {\em Journal of Logic Programming}, 31, 1997.
+
+\bibitem{survo}
+S.~Mustonen.
+\newblock On certain cross sum puzzles, 2006.
+
+\bibitem{opensurvo}
+S.~Mustonen.
+\newblock Enumeration of uniquely solvable open {Survo} puzzles, 2007.
+
+\bibitem{Neumann1}
+G.~Neumann.
+\newblock {Programming Languages} in {A}rtificial {I}ntelligence.
+\newblock In Bentley and Bidgoli, editors, {\em Encyclopedia of {Information
+  Systems}}. Academic Press, San Diego, 2002.
+
+\bibitem{furerquan}
+L.~Quan.
+\newblock Investigate parameters of {F{\"u}rer's algorithm}.
+\newblock Capita Selecta AI: Task 3, 2011.
+
+\bibitem{cpquan}
+L.~Quan and P.~Tanghe.
+\newblock Regel-gebaseerde regressie.
+\newblock Capita Selecta AI: Task 2, 2011.
+
+\bibitem{ttpquan}
+L.~Quan and P.~Tanghe.
+\newblock Simulated annealing voor {TTP} ({TTSA}).
+\newblock Capita Selecta AI: Task 1, 2011.
+
+\bibitem{shapiro}
+A.~Shapiro, D.~Dentcheva, and R.~Andrzej.
+\newblock {\em Lectures on stochastic programming: modeling and theory},
+  volume~9 of {\em {MPS/SIAM} {Series} on {Optimization}}.
+\newblock SIAM, 2009.
+
+\bibitem{website}
+M.~Trick.
+\newblock Challenge traveling tournament problems, 2011.
+\newblock \url{http://mat.gsia.cmu.edu/TOURN/}.
+
+\bibitem{constraintscheduling}
+M.~A. Trick.
+\newblock Integer and constraint programming approaches for round-robin
+  tournament scheduling.
+\newblock In {\em PATAT}, pages 63--77, 2002.
+
+\bibitem{dtproblog}
+G.~{Van den Broeck}, I.~Thon, M.~V. Otterlo, and L.~D. Raedt.
+\newblock {DTProbLog: A Decision-Theoretic Probabilistic Prolog}.
+\newblock In M.~Fox and D.~Poole, editors, {\em Proceedings of the
+  Twenty-Fourth AAAI Conference on Artificial Intelligence, AAAI 2010, Atlanta,
+  Georgia, USA, July 11--15, 2010}. AAAI Press, 2010.
+
+\bibitem{paper2}
+P.~{Van Hentenryck} and Y.~Vergados.
+\newblock Traveling tournament scheduling: A systematic evaluation of simulated
+  annealing.
+\newblock In {\em CPAIOR}, pages 228--243, 2006.
+
+\bibitem{cplogic}
+J.~Vennekens, S.~Verbaeten, and M.~Bruynooghe.
+\newblock Logic programs with annotated disjunctions.
+\newblock In {\em In Proc. Int'l Conf. on Logic Programming}, pages 431--445.
+  Springer, 2004.
+
+\bibitem{wiki:survo}
+Wikipedia.
+\newblock Survo puzzle --- {W}ikipedia{,} the free encyclopedia, 2011.
+\newblock \url{http://en.wikipedia.org/wiki/Survo_Puzzle} [last accessed: May
+  31, 2011].
+
+\end{thebibliography}

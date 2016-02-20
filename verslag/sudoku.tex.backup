@@ -1,0 +1,516 @@
+\section{Sudoku}
+\subsection{Discussion}
+\subsubsection{ECLiPSe}
+Sudoku is a perfect example for which constraint programming is very easy and efficient to use. This arises automatically from the formulation of the Sudoku problem: each unit (a row, a column and a block) contains a permutation of 1--9. It is very easy to code this using the alldifferent constraint.
+
+\subsubsection{CHR}
+
+
+\subsubsection{JESS}
+JESS is a rule-based system, so naturally, Sudoku should be easily solvable using this system. 
+At first view, Jess does not seem to have disadvantages: normal propagation rules have to be written. If nothing can be propagated, take a chance and assign a possible value at a certain location.
+
+It is however, not clear, when what rule will be used. Depth-search would active the most recently used rules. What rules will be used to begin? A random allocation or a propagation? Assume we start with propagation until we can't propagate anything anymore, we have to choose a random value to fill in at a random allocation, of course without breaking Sudoku-rules. How do we know that after having made a random choice, we will continue to propagate?
+
+Breadth-search would invoke rule by rule. Logically, not a good choice, since it will sometimes make a random choice when it's not needed. Since it's breadth-first, it consumes a lot of additional memory.
+
+Of course, we could use these strategies, since both would come up with a solution eventually, but this would require a lot of memory and time. Possibly, we could even run out of working memory.
+
+As a result, we would have to write our own strategy, which is a very nice feature. However, since our lack of experience with Jess, this does not seem an easy task.
+
+A different feature in JESS is the ability to use Java. This means we could let Java handle the input. Changing the Sudoku in Java could fire events, making sure certain rules fire. This would be a work-around for the previous problem: only propagation rules are written in Jess. If Jess can't find any more useful rules, Java would make a random choice. 
+
+This poses a new problem: if Java makes a wrong guess, we would have to backtrack. As fas as we know, we would have to implement that ourselves in Java. Even though it would not be difficult, since we are working in a very narrow domain (whenever we have to make a choice, we make a `snapshot' of the Sudoku). This would however mean another extra amount of code, that might be more complex than writing our own strategy.
+
+Because of this and our inexperience with JESS, we decided not to solve Sudoku in JESS.
+
+\subsubsection{Alternatives}
+Very naive approaches also exist, e.g.~brute force, or a simple backtracking search, but are of course very inefficient. Interestingly, local search and meta-heuristics such as simulated annealing and tabu search have been fairly successfully used to solve Sudoku's \cite{sudokusa}.
+Also SAT solvers have been used \cite{satsudoku}.
+The Wikipedia article on Sudoku \cite{wiki:sudoku} gives a good overview of different techniques.
+
+\subsection{Viewpoints and Programs}
+\subsubsection{Standard viewpoint}
+Of course, the standard viewpoint (which follow directly from the Sudoku definition and already given in the introduction) is the most natural and easy way to define the constraints. 
+
+Some alternative viewpoints and a discussion of constraint programming for Sudoku's in general are shown in \cite{sudoku_constraint}. The criteria to judge whether a viewpoint is a good one or not is based on efficiency and readability (complexity in terms of program structure). Other qualities would be scalability and modifiability in general.
+
+
+\subsubsection{Alternative viewpoint}
+First, we can of course consider the trivial viewpoints such as rows versus columns, but these would not make a difference because of the symmetry of the Sudoku puzzle.
+
+We consider the dual viewpoint of Sudoku (which is also described on \cite{sudokualt}). We consider 9 variables $n_1,\ldots, n_9$ which represent the numbers $1,\ldots, 9$, and the domain of every number is the power set $ \mathcal{P}\{1,\ldots 81\}$, i.e.~the boxes a number occurs; an assignment $n_i = \{ c_1, \ldots, c_n\}$ means that number $i$ occurs in box $c_1, \ldots, c_n$ and $\{ c_1 \ldots , c_n \}$ is a subset of $\{1,\ldots , 81\}$.
+
+In this viewpoint, constraint are more ``clumsy'' to express.
+\begin{itemize}
+ \item the cardinality of every set representing a number is 9;
+ \item all those sets are disjoint;
+ \item every number has exactly one value in every row and every column and exactly one value in every $3 \times 3$ box. 
+\end{itemize}
+
+
+
+
+\subsection{Experiments}
+\setlength\sudokusize{ 6.5cm }
+
+\subsubsection{ECLiPSe}
+These experiments were done on a Ubuntu 64-bit laptop with an Intel Core i3 processor and 4\,GB RAM memory, with ECLiPSe Version 6.0 \#169 (x86\_64\_linux).
+\paragraph{Normal viewpoint}
+\autoref{tab:classiceclipse} shows the given Sudoku puzzles using the normal viewpoint in ECLiPSe. (All given puzzles were well-formed, i.e.~there existed only one solution per puzzle.) We also added 2 extra Sudoku's (\autoref{fig:extrasudoku}) so we could compare with the given puzzles. These 2 puzzles (\emph{diabolical} and \emph{platinum}) were considered difficult, as rated by some program.
+
+It is clear that this is a very good approach: all puzzles took less than one second to solve. Moreover, we see that the first-fail ordering of variables is always better (the number of backtracks is in almost all cases (sometimes significantly) reduced), except for the \emph{goldennugget} puzzle. The implementation was done using the alldifferent constraint from the ic\_global library. We also used the version of the standard ic library but noticed no difference. A possibility is that the problem size is too small for the more global reasoning of the constraints\footnote{From the ECLiPSe tutorial: \begin{quote}
+   The constraints have the same declarative semantics (what they do, conceptually), but different operational semantics (how they do it, in practice). Those in ic\_global perform more computation, but achieve more propagation. In simple terms, the propagation in the ic\_global takes a more ``global'' view of the constraint by reasoning over several variables at the same time, rather than just pairs of variables. For example, all\_different in ic is decomposed into \#\textbackslash= constraints between all possible pairs of variables, whereas the ic considers the variables in the constraint together.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \end{quote}
+} too fully work, but we have not tested this to confirm this.
+
+
+%    
+\begin{table}[hbpt] %sidewaystable
+\centering%\scriptsize
+  \begin{tabular}{l   S S r S S }
+  \toprule
+       &  \multicolumn{2}{c}{input order} && \multicolumn{2}{c}{first-fail}\\ \cmidrule{2-3} \cmidrule{5-6} 
+puzzle & {run time (s)} & {backtracks} && {run time (s)} & {backtracks} \\ \midrule
+medium 		& 0.00& 0 	&& 0.00& 0\\
+difficult 	& 0.00& 0 	&& 0.00& 0\\
+verydifficult 	& 0.00& 0	&& 0.00& 0\\
+expert 		& 0.01& 5	&& 0.00& 4\\
+lambda 		& 0.92& 10786	&& 0.13& 773\\
+hard17 		& 0.14& 1383 	&& 0.07& 476\\
+symme 		& 0.09& 548	&& 0.06& 377\\
+eastermonster 	& 0.12& 648	&& 0.09& 424\\
+tarek\_052  	& 0.01& 53	&& 0.01& 5\\
+goldennugget 	& 0.05& 295	&& 0.08& 354\\
+coloin 		& 0.12& 763	&& 0.13& 750\\
+hardest 	& 0.12& 648	&& 0.08& 424\\
+extra1  	& 0.29& 4229	&& 0.11& 871\\
+extra2 		& 0.42& 4236	&& 0.27& 1454\\
+extra3 		& 0.91& 10786	&& 0.13& 773\\
+extra4		& 0.25& 2856	&& 0.14& 1074\\
+diabolical      & 0.01& 1       && 0.00& 1\\
+platinum        & 0.04& 260     && 0.01& 36\\
+\bottomrule
+  \end{tabular}
+
+%        & \multicolumn{5}{c}{ic:alldifferent/1}                               && \multicolumn{5}{c}{ic\_global:alldifferent/1} \\ \cmidrule{2-6} \cmidrule{8-12}
+%        &  \multicolumn{2}{c}{input order} && \multicolumn{2}{c}{first-fail}  && \multicolumn{2}{c}{input order} && \multicolumn{2}{c}{first-fail}\\ \cmidrule{2-3} \cmidrule{5-6}  \cmidrule{8-9} \cmidrule{11-12}
+% puzzle & {run time (s)} & {backtracks} && {run time (s)} & {backtracks} && {run time (s)} & {backtracks} && {run time (s)} & {backtracks} \\ \midrule
+% medium 		& 0.00& 0 	&& 0.00& 0\\
+% difficult 	& 0.00& 0 	&& 0.00& 0\\
+% verydifficult 	& 0.00& 0	&& 0.00& 0\\
+% expert 		& 0.01& 5	&& 0.00& 4\\
+% lambda 		& 0.92& 10786	&& 0.13& 773\\
+% hard17 		& 0.14& 1383 	&& 0.07& 476\\
+% symme 		& 0.09& 548	&& 0.06& 377\\
+% eastermonster 	& 0.12& 648	&& 0.09& 424\\
+% tarek\_052  	& 0.01& 53	&& 0.01& 5\\
+% goldennugget 	& 0.05& 295	&& 0.08& 354\\
+% coloin 		& 0.12& 763	&& 0.13& 750\\
+% hardest 	& 0.12& 648	&& 0.08& 424\\
+% extra1  	& 0.29& 4229	&& 0.11& 871\\
+% extra2 		& 0.42& 4236	&& 0.27& 1454\\
+% extra3 		& 0.90& 10786	&& 0.13& 773\\
+% extra4		& 0.25& 2856	&& 0.14& 1074\\
+% \bottomrule
+%   \end{tabular}
+\caption{Experiments classic Sudoku ECLiPSe.}
+\label{tab:classiceclipse}
+\end{table}
+
+Clearly, the \emph{lambda} Sudoku  is the most difficult puzzle for our solver. (Extra3 is apparantly the exact same puzzle.) If we inspect the puzzle (\autoref{fig:lambda}) more carefully, we suspect that this is a puzzle where very few hints are given, which makes the propagation of constraints more difficult.
+\begin{figure}[hbpt]
+\centering
+\begin{sudoku}
+|1| | | | | | | | |.
+| | |2|7|4| | | | |.
+| | | |5| | | | |4|.
+| |3| | | | | | | |.
+|7|5| | | | | | | |.
+| | | | | |9|6| | |.
+| |4| | | |6| | | |.
+| | | | | | | |7|1|.
+| | | | | |1| |3| |.
+\end{sudoku}
+\caption{\emph{lambda} Sudoku.}
+\label{fig:lambda}
+\end{figure}
+\hfill
+\begin{figure}[hbpt]
+\centering %[\emph{diabolical} Sudoku
+\subfloat[\emph{diabolical} \cite{diabolical}] {\label{fig:diabolical} \begin{minipage}{0.5\textwidth}  \begin{sudoku}
+||2||7|||1|||.
+|3||9|||8||||.
+|7||||5|||6|3|.
+||5|||8||||4|.
+|8|||2||1|||5|.
+|9||||4|||1||.
+|2|3|||6||||1|.
+||||8|||6||9|.
+|||8|||4||7||.
+\end{sudoku} \end{minipage} }
+\subfloat[\emph{platinum} \cite{platinum}] {\label{fig:platinum} \begin{minipage}{0.5\textwidth} \begin{sudoku}
+	|  |  |  |   |  |  |   |1 |2|. 
+	| | | |  | | |  | |3|. 
+	| | |2 | 3 | | | 4 | ||.  
+	| | |1 | 8 | | |  | |5|.  
+	| |6 | | |7 | | 8 | ||.  
+	| | | |  | |9 |  | ||. 
+	| | |8 | 5 | | |  | ||.  
+	|9 | | |  |4 | | 5 | ||. 
+	|4 |7 | | | |6 |  | ||. 
+\end{sudoku}
+
+\end{minipage}}
+
+\caption{Extra Sudoku's.}
+\label{fig:extrasudoku}
+\end{figure}
+
+\paragraph{Alternative viewpoint}
+The results of the alternative viewpoint in ECLiPSe is given in \autoref{tab:alternativeeclipse}. Using the ic\_sets library the first two constraints are fairly easy to write, but the last one is more troublesome. It can be done by constructing for-loops and making calculations on the cell id's, but this can be fairly difficult to read. Therefore, we decided to ``hardcode'' these last constraints for a $9 \times 9$ Sudoku. This makes the program less portable, but greatly improves the readability.
+
+
+
+Surprisingly, this viewpoint does not perform significantly worse than the normal viewpoint (for instance the time for the first 3 puzzles are only slightly larger). For some puzzles, it even performs significantly better (for instance, the \emph{extra} puzzles). Apparently, this form of reasoning is better for those puzzles.
+\begin{table}[hbpt]
+ \centering
+\begin{tabular}{l S}\toprule
+name & {time (s)} \\ \midrule
+medium  &  0.04\\
+difficult & 0.02\\
+verydifficult & 0.03\\
+expert & 0.04\\
+lambda & 0.04\\
+hard17 & 0.04\\
+symme & 0.38\\
+eastermonster & 0.14\\
+tarek\_052 & 0.05\\
+goldennugget & 0.89\\
+coloin & 2.08\\
+hardest & 0.14\\
+extra1 & 0.04\\
+extra2 & 0.05\\
+extra3 & 0.03\\
+extra4 & 0.03\\
+diabolical & 0.04\\
+platinum & 0.86\\ \bottomrule
+\end{tabular}
+\caption{Experiments alternative viewpoint Sudoku ECLiPSe.}
+\label{tab:alternativeeclipse}
+\end{table}
+
+
+
+
+\clearpage
+\subsubsection{CHR}
+The following experiments were done on the same laptop running SWI-Prolog (Multi-threaded, 64 bits, Version 5.8.2).
+\paragraph{Normal viewpoint}
+The classic Sudoku in CHR (based on \url{http://dtai.cs.kuleuven.be/CHR/summerschool/contest/sudoku.chr}, but fixed a few bugs). It should be clear that the performance is comparable to the first-fail heuristic of above in ECLiPSe.
+
+\begin{table}[hbpt] %sidewaystable
+\centering
+  \begin{tabular}{l S}
+\toprule
+puzzle & {run time (s)}  \\ \midrule
+medium 		& 0.07\\
+difficult 	& 0.06\\
+verydifficult 	& 0.07\\
+expert 		& 0.07\\
+lambda 		& 0.11\\
+hard17 		& 0.10\\
+symme 		& 0.09\\
+eastermonster 	& 0.09\\
+tarek\_052  	& 0.09\\
+goldennugget 	& 0.08\\
+coloin 		& 0.09\\
+hardest 	& 0.08\\
+extra1  	& 0.11\\
+extra2 		& 0.10\\
+extra3 		& 0.11\\
+extra4		& 0.11\\
+diabolical      & 0.06\\
+platinum        & 0.10\\
+\bottomrule
+  \end{tabular}
+\caption{Experiments classic Sudoku CHR.}
+\label{tab:classicchr}
+\end{table}
+
+\paragraph{Alternative viewpoint}
+% Whereas the classical viewpoint searches for the value at specified locations, an alternative viewpoint is to search the locations of one possible value.
+
+In CHR, this gives rise to making a cell per value: the cell would have 2 parameters: the value $1\dots 9$ and the list of possible values \verb|V| (of length 9).  To specify which locations could have a certain value, but we are not yet certain of, we use the `maybe' predicate with arity 3. We define \verb|maybe(X,Vals,LL)|, where \verb|X| is the value $1\ldots 9$, \verb|Vals| the possible locations and \verb|length(Vals,LL)|.
+
+First, we need to convert the input, which still uses the classical viewpoint to our alternative viewpoint.
+\begin{lstlisting}
+sudoku(Input,Output) :-
+    numlist(1,81,D),
+    forCell(1,9,Output),
+    make_vals(Input,1,D),!.
+\end{lstlisting}
+
+In this predicate, Input is, of course, the Sudoku to solve. It contains the Sudoku according to the classical viewpoint. Output is the alternative viewpoint. Even though we don't need the output as a return, it's interesting to be able to take a look at it during program execution.
+
+The \verb|forCell| predicate creates the 9 cells and add the location-list to Output. It also creates the initial maybe's.
+\begin{lstlisting}
+forCell(Max,Max,[Cell]) :- createCell(Max,Cell).
+forCell(Cur,Max,[H|T]) :-
+	Curn is Cur+1,
+	forCell(Curn,Max,T),
+	createCell(Cur,H).
+
+createCell(Cell,D) :-
+	length(D,9),
+	cell(Cell,D),
+	numlist(1,81,Maybe),
+	maybe(Cell,Maybe,81).
+\end{lstlisting}
+
+	
+After the creation of the cells, the input is finally converted to the classical viewpoint using the \verb|make_vals/3| predicate:
+\begin{lstlisting}
+make_vals([],_,_).
+
+make_vals([[]|L],Count,D) :-
+	make_vals(L,Count,D).
+make_vals([[E|Es]|L],Count,D) :-
+	(   var(E) ->
+	  NewD = D
+	;
+	  assignLocation(E,Count),
+	  select(Count,D,NewD)
+	),
+	NewCount is Count+1,
+	make_vals([Es|L],NewCount,NewD).
+\end{lstlisting}	
+Note the `assignLocation'. By assigning an index in the location array, we can improve performance. If a location/value coupling does not seem to be correct, the program might backtrack and assign the location to the same value again, but on a different index. The program would be forced to make unnecessary operations again.
+\begin{lstlisting}
+assignLocation(Cell,Value) :-
+	cell(Cell,Vals),
+	X is (Value+8)//9,
+	nth1(X,Vals,Value).
+\end{lstlisting}
+
+This predicate makes sure that locations on the same row always have the same index. 
+Afterwards, we can start solving the sudoku:
+\begin{lstlisting}
+solve :- (solved ->  true ; choice,solve).
+\end{lstlisting}
+
+This is also where the output in \verb|sudoku/2| comes in handy: we can print it out between different steps:
+
+\begin{lstlisting}
+solve(P) :- get_single_char(_),writeOutput(P),(solved -> true; choice,solve(P)).
+\end{lstlisting}
+
+First, we should discuss the normal propagation rules.
+
+\begin{lstlisting}
+rememberCell @ cell(N,Vals) \ cell(N,Vals2) <=> Vals=Vals2. 
+\end{lstlisting}
+
+This rule is self-explanatory: we want to remember our cells.
+\begin{lstlisting}
+cell(X,V) \ maybe(X,[L],_) <=> getGrounded(V,O),length(O,8)| assignLocation(X,L).
+cell(X,V) \ maybe(X,_,_) <=> getGrounded(V,O),length(O,9) | true.
+\end{lstlisting}
+
+This two rules belong together. If a maybe has only one possibility left, we will check the assigned locations of the corresponding cell. (getGrounded(V,O): O contains grounded items in V). If the length of O is 8, we will assign that last value to X and remove that maybe.
+
+On the other hand, if all locations for a certain cell are `known', the corresponding maybe should be removed.
+is slightly more complicated. If a `maybe' has only one possibility left, we will check the assigned locations of the corresponding cell. (getGrounded(V,O): O contains grounded items in V). If the length is of O is 8, we will assign that final
+
+\begin{lstlisting}
+maybe(_,_,0) <=> fail.  
+\end{lstlisting}
+
+
+If any maybe is found with zero possible locations, we assume we made an error earlier. (Normally, by the time we arrive at this rule, any cells that are completely filled in, should have their maybe's removed).
+
+\begin{lstlisting}
+cell(X,V) \ maybe(X,L,LL) <=>
+        member(Elem,V),nonvar(Elem),
+	member(Diff,L),
+	sees(Elem,Diff), select(Diff,L,R) |
+	RL is LL-1, maybe(X,R,RL). 
+\end{lstlisting}
+
+If Elem is a set location for X, then every location L that is seen by Elem, should be removed from that maybe. The old maybe is removed and an updated maybe is set.
+
+sees/2 and relevant predicates are shown below:
+\begin{lstlisting}
+sees(X,Y) :-
+	toXY(X,X1,Y1),
+	toXY(Y,X2,Y2),
+	sees(X1,Y1,X2,Y2).
+
+sees(X,_,X,_) :- !,true.          % same row
+sees(_,Y,_,Y) :- !,true.          % same column
+sees(X,Y,A,B) :-        % same box
+	(X-1)//3 =:= (A-1)//3,
+        (Y-1)//3 =:= (B-1)//3.
+
+toXY(Val,X,Y) :-
+	X is (Val+8)//9,
+	Y is Val-((Val-1)//9)*9.
+\end{lstlisting}
+
+
+The second rule:
+\begin{lstlisting}
+cell(_,V) \ maybe(A,L,LL) <=> %If a location 'j'already has a value, it can't be set anywhere else.
+	member(Elem,V),nonvar(Elem),
+	select(Elem,L,R) |
+	RL is LL-1, maybe(A,R,RL).
+\end{lstlisting}
+
+	
+If Elem is a set location for any cell, then that location cannot be a 'possible' location for every other value. Therefore, all maybe's are updated accordingly.
+
+These are the set propagation rules. If these are exhausted, we have to guess. This is done by the 'solve' predicate shown above. We will repeat it here:
+\begin{lstlisting}
+solve :- (solved ->  true ; choice,solve).
+choice :- ff(1).
+\end{lstlisting}
+
+If the sudoku is not yet solved (it is solved when there are no more maybe's), it will make a 'choice', and then solve it again. 'choice' will set ff/1 to 1. This makes that 2 possible rules are fired:
+\begin{lstlisting}
+cell(X,_) \ ff(LL), maybe(X,L,LL) <=>
+	 select(D,L,R),assignLocation(X,D)|
+	 RL is LL-1,maybe(X,R,RL).
+
+ff(LL) <=> LL1 is LL+1, ff(LL1). 
+\end{lstlisting}
+
+
+The first, will, if there exists a maybe with a LL number of possible locations, select a possible location from that list and see if it can be assigned to the corresponding value. If so, update the maybe.
+
+If that rule cannot be fired, ff(LL) will be increased to ff(LL+1).
+
+Finally, we have to know that the Sudoku is solved. 
+\begin{lstlisting}
+maybe(_,_,_) \ solved <=> fail.
+solved <=> true.
+\end{lstlisting}
+
+If there exists a maybe, it can not be solved. We still are not of all locations.
+Otherwise, if there is no doubt, the puzzle is solved.
+
+This rule cleans up afterwards:
+\begin{lstlisting}
+cleanup \ cell(_,_) <=> true.
+\end{lstlisting}
+
+This is the code for getGrounded/2:
+\begin{lstlisting}
+getGrounded([],[]).
+getGrounded([H|T],Tmp) :-
+	(   nonvar(H) ->
+	    [H1|Out] = Tmp,
+	    H1=H,
+	    NO = Out
+	;
+	NO = Tmp
+	),
+	getGrounded(T,NO).
+\end{lstlisting}
+
+	
+In order to convert the solution back to the classical viewpoint, we use the consider/2 predicate, which is invoked by consider(Input,1).
+\begin{lstlisting}
+consider(_,10).
+
+consider(Input,Val) :-
+	ValN is Val+1,
+	consider(Input,ValN),
+	cell(Val,Locs),
+	getGrounded(Locs,Vals),
+	consider(Input,Vals,1,Val).
+
+consider([],_,_,_).
+consider(_,[],_,_).
+consider([[]|Rest],T,Count,Value) :-
+	consider(Rest,T,Count,Value).
+consider([[Es|E]|Rest],[H|T],H,Value) :-
+	Es=Value,
+	NewC is H+1,
+	consider([E|Rest],T,NewC,Value).
+
+consider([[_|Tail]|Rest],[H|T],Count,Value) :-
+	Count \= H,!,
+	NewC is Count+1,
+	consider([Tail|Rest],[H|T],NewC,Value).
+\end{lstlisting}
+
+	
+	
+To test this program, we also wrote a very easy Sudoku, where only a few locations need to be filled in:
+
+\begin{lstlisting}
+tooeast(P) :- P =
+	[[1,2,3,4,5,6,7,8,9],
+	 [4,5,6,7,8,_,1,2,3],
+	 [7,8,9,1,2,3,4,5,6],
+	 [2,3,4,5,_,7,8,9,1],
+	 [5,6,7,8,9,_,2,3,4],
+	 [8,9,1,2,3,4,5,6,7],
+	 [3,4,5,_,7,8,9,1,2],
+	 [6,7,8,9,1,2,3,4,5],
+	 [9,1,2,3,4,5,6,7,_]]. 
+\end{lstlisting}
+
+	 
+To solve this puzzle, we use the following code:
+\begin{lstlisting}
+ ?- tooeast(P),sudoku(P,O),solve,consider(P,1),writeln('Input: '),writeOutput(P),writeln('Viewpoint view: '),writeOutput(O).
+\end{lstlisting}
+
+
+ 
+This gives the following output:
+\begin{verbatim}
+
+Input: 
+[1,2,3,4,5,6,7,8,9]
+[4,5,6,7,8,9,1,2,3]
+[7,8,9,1,2,3,4,5,6]
+[2,3,4,5,6,7,8,9,1]
+[5,6,7,8,9,1,2,3,4]
+[8,9,1,2,3,4,5,6,7]
+[3,4,5,6,7,8,9,1,2]
+[6,7,8,9,1,2,3,4,5]
+[9,1,2,3,4,5,6,7,8]
+Viewpoint view: 
+[1,16,22,36,42,48,62,68,74]
+[2,17,23,28,43,49,63,69,75]
+[3,18,24,29,44,50,55,70,76]
+[4,10,25,30,45,51,56,71,77]
+[5,11,26,31,37,52,57,72,78]
+[6,12,27,32,38,53,58,64,79]
+[7,13,19,33,39,54,59,65,80]
+[8,14,20,34,40,46,60,66,81]
+[9,15,21,35,41,47,61,67,73]
+cell(1,[1,16,22,36,42,48,62,68,74])
+cell(2,[2,17,23,28,43,49,63,69,75])
+cell(3,[3,18,24,29,44,50,55,70,76])
+cell(4,[4,10,25,30,45,51,56,71,77])
+cell(5,[5,11,26,31,37,52,57,72,78])
+cell(6,[6,12,27,32,38,53,58,64,79])
+cell(7,[7,13,19,33,39,54,59,65,80])
+cell(8,[8,14,20,34,40,46,60,66,81])
+cell(9,[9,15,21,35,41,47,61,67,73])
+P = [[1, 2, 3, 4, 5, 6, 7, 8|...], [4, 5, 6, 7, 8, 9, 1|...], [7, 8, 9, 1, 2, 3|...], 
+[2, 3, 4, 5, 6|...], [5, 6, 7, 8|...], [8, 9, 1|...], [3, 4|...], [6|...], [...|...]],
+
+O = [[1, 16, 22, 36, 42, 48, 62, 68|...], [2, 17, 23, 28, 43, 49, 63|...], 
+[3, 18, 24, 29, 44, 50|...], [4, 10, 25, 30, 45|...], [5, 11, 26, 31|...],
+[6, 12, 27|...], [7, 13|...], [8|...], [...|...]] 
+\end{verbatim}
+
+The viewpoint view gives per row (as a value) the corresponding values, e.g.: row 1 shows the locations of value 1, row 2 shows the locations of value 2, \ldots
+
+Unfortunately, the given Sudoku's appear not to be solvable by this program. At the time of writing, the reason why has not yet been discovered.
+
+
+\subsubsection{Conclusion}

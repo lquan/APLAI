@@ -1,0 +1,169 @@
+
+\section{Maximum Density Still Life}
+\subsection{Discussion}
+\subsubsection{ECLiPSe}
+The formulation of the problem is as explained in \cite{paper_still,paper_still2} almost a trivial exercise in constraint programming.
+The main constraints of the problem are shown below (additionally, we have to add constraints such that the border cells are dead and stay dead):
+\begin{lstlisting}
+% current cell and its neighbours	
+Nbs #= ( Board[X-1,Y-1]  + Board[X,Y-1] + Board[X+1,Y-1] + 
+	 Board[X-1,Y]    +  		  Board[X+1,Y]   + 
+	 Board[X-1,Y+1]  + Board[X,Y+1] + Board[X+1,Y+1] ),
+% live cell must be kept alive		 
+Board[X,Y] => ( Nbs #>= 2 and Nbs #=<3 ),	 
+% dead cell must stay dead
+neg(Board[X,Y]) => Nbs #\= 3
+\end{lstlisting}
+
+This Still Life can easily be used for the MDSL solver by maximizing the number of cells that are alive (or equivalently, minimizing the cells that are dead).
+
+The symmetry breaking in \cite{paper_still,paper_still2} can also be easily written.
+Additionally, the coupling with external solvers for the linear programming (using the eplex library) allows to use a hybrid solver, which should perform considerably better.
+
+\subsubsection{CHR}
+We used the given starting program skeleton in CHR.
+While the complete program is also very readable, the approach taken does require a complete different way of thinking. Also in general, the symmetry breaking constraints seem much more difficult to write, as does the coupling with an linear programming interface.
+
+
+
+\subsubsection{JESS}
+In essence, the same solution as for Sudoku could be used: Java for
+input and ``guessing''/backtracking; and JESS would make use of rules to
+propagate as much as possible. Many libraries exist for Java for optimization so a combination with a linear programming package would be possible, but the full integration with the rule handling would not be so trivial.
+
+\subsubsection{Alternatives}
+The MDSL problem has been studied intensively and various specialized optimizations have been proposed. Various relaxations are discussed in~\cite{upperbound}. The use of Binary Decision Diagrams (BDD) have been discussed in \cite{bdd}
+
+\subsection{Experiments}
+Experiments in ECLiPSe for MDSL were performed on the PC's of the computer labo's; for CHR again the same configuration as above.
+
+\subsubsection{ECLiPSe}
+The experiments with (a subset of) the different approaches as discussed in \cite{paper_still2}  are shown in \autoref{tab:mdsl_eclipse}. `CP' is the standard constraint programming technique, `CP (symm)' breaks the symmetry by considering only board where the density of the left halve is at least that of the right halve\footnote{Likewise this can be done for the upper and lower halve, either as an extra constraint or independently. We only tested the lower versus right density constraint.} (this is an ad-hoc approach); `CP (symm2)' uses the symmetry breaking discussed at the end of the paper (i.e., symmetry breaking by selective ordering\footnote{The assignment of cells is forced to respect an ordering on the values that occur in corner entries
+of the board.}). Finally, the hybrid `CP/IP' solver is also tested, first without symmetry constraints and then with the second symmetry breaking approach (for the hybrid approach we only added the death by overcrowding constraint as this gave the best results in the paper).
+
+\begin{table}[hbpt]
+\centering
+\begin{tabular}{ c S S S S S} \toprule
+$n$ & {CP} & {CP (symm)} & {CP (symm2)} & {CP/IP} & {CP/IP (symm2)} \\ \midrule
+2 &  0.00 & 0.00 & 0.00	& 0.00 & 0.00							\\
+3 &  0.00 & 0.00 & 0.00	& 0.00	& 0.00							\\
+4 & 0.02 &   0.03 &  0.01  & 0.01 & 0.01		  \\
+5 & 0.01 & 0.01 & 0.00  & 0.01 & 0.00\\
+6 & 1.49 & 1.55 & 1.34 & 1.51 & 1.50 \\
+7 & 11.77 &  13.06    & 10.56 &    14.06 & 13.83\\
+8 & 259.60 & 260.03     & 236.26 &  272.45 & 258.30\\
+\bottomrule
+\end{tabular}
+\caption{Experiments MDSL in ECLiPSe. Times shown are in seconds.}
+\label{tab:mdsl_eclipse} 
+\end{table}
+
+
+The problem with sizes $n\geq 9$ took more than 15 minutes for all solvers. While the pure CP approaches are perfectly in line with the timings shown in the paper \cite{paper_still2}, the CP/IP hybrid approaches do not seem to improve drastically; they even perform (albeit slightly) worse for some instances. We also tried both the death by overcrowding and the death by isolation together, but these performed even more drastically worse (for $n=8$, it took almost 400\,s).
+
+We don't have the full explanation, but it might be that the linear programming solver used cannot ``communicate'' efficiently with the CP solver, either because of wrong settings or because of the implementation (we also observed that these timings differed greatly from one system te another, so in general, it is quite difficult to point out the exact problem). It might be that the software used in the paper (OPLStudio) supports a better hybrid search, or that the authors of the paper also used specific extra heuristics/optimizations which were not mentioned.
+\subsubsection{CHR}
+We'll just show the traces of the CHR output as these should be self-explanatory.
+\begin{verbatim}
+?- time(mdsl(2)).
+trying_label(4)
+0000
+0110
+0110
+0000
+% 35,617 inferences, 0.010 CPU in 0.014 seconds (71% CPU, 3561700 Lips)
+label(4)
+true.
+\end{verbatim}
+\begin{verbatim}
+?- time(mdsl(3)).
+trying_label(6)
+00000
+01100
+01010
+00110
+00000
+% 87,504 inferences, 0.020 CPU in 0.024 seconds (82% CPU, 4375200 Lips)
+label(6)
+true. 
+\end{verbatim}
+
+\begin{verbatim}
+?- time(mdsl(4)).
+trying_label(11)
+trying_label(10)
+trying_label(9)
+trying_label(8)
+000000
+011000
+010100
+001010
+000110
+000000
+% 13,781,406 inferences, 2.290 CPU in 2.298 seconds (100% CPU, 6018081 Lips)
+label(8)
+true.
+\end{verbatim}
+
+
+\begin{verbatim}
+?- time(mdsl(5)).
+trying_label(16)
+0000000
+0110110
+0110110
+0000000
+0110110
+0110110
+0000000
+% 289,178 inferences, 0.050 CPU in 0.060 seconds (83% CPU, 5783560 Lips)
+label(16)
+true.
+\end{verbatim}
+
+\begin{verbatim}
+?- time(mdsl(6)).
+trying_label(22)
+trying_label(21)
+trying_label(20)
+trying_label(19)
+trying_label(18)
+00000000
+01100000
+01010110
+00110110
+00000000
+00110110
+00110110
+00000000
+% 937,169,006 inferences, 184.612 CPU in 186.195 seconds (99% CPU, 5076437 Lips)
+label(18)
+true.
+\end{verbatim}
+
+\begin{verbatim}
+?- time(mdsl(7)).
+trying_label(29)
+trying_label(28)
+000000000
+011011010
+001010110
+010010000
+011101110
+000010010
+011010100
+010110110
+000000000
+% 2,931,062,192 inferences, 574.505 CPU in 581.200 seconds (99% CPU, 5101893 Lips)
+label(28)
+true.
+\end{verbatim}
+
+
+\subsubsection{Conclusion}
+ CHR is not able to solve instances greater than $n=7$ under 15 minutes ($n=8$ under 2 hours), ECLiPSe can solve $n=8$ in about 4 minutes. However, instances with $n\geq 9$ are still taking very large amounts of time to solve in ECLiPSe, even with the hybrid approach and/or symmetry breaking. The CP approach complies fully with the results shown in the paper, and it is also clear that the ad-hoc symmetry breaking does not help much the CP search. In our experiments, the CP with the second symmetry breaking outperformed the other methods.
+
+
+
+
+

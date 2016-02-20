@@ -1,0 +1,120 @@
+\documentclass[a4paper,11pt,english]{article}
+\usepackage{mystyle}
+
+\title{Advanced Programming Languages for AI\\ Task~3 and 4}
+%\subtitle{Task 3}
+\author{Karl Dox \and Li Quan  \and Nathan Vandecauter }
+%\subject{Verslag}
+\date{July 1, 2011}
+\bibliographystyle{abbrv}
+
+
+\begin{document}
+\maketitle
+%\begin{abstract}
+
+%\end{abstract}
+\part{Task~3}
+\section{Introduction}
+This paper briefly discusses some aspects of Artificial Intelligence which could be interesting for a course `Advanced Programming Languages for AI'.
+
+Note that the selection of topics might be biased as all of them are based on tasks given in the course `Capita Selecta AI' of the year 2010--2011.
+
+
+\section{Stochastic/probabilistic programming}
+\begin{quote}
+ Although many ways have been proposed to model uncertain quantities, stochastic models have proved their flexibility and usefulness in diverse areas of science. 
+This is mainly due to solid mathematical foundations and theoretical richness of the theory of probability and stochastic processes, and to sound statistical techniques of using real data. \cite{shapiro}
+\end{quote}
+
+\subsection*{Optimization}
+For instance, consider the Traveling Tournament Problem \cite{ttp,website}. This is a very hard problem as it combines two problems \cite{Benoist01lagrangerelaxation}: first, the generation of schedules, and second, the optimization of those schedules. While for instance constraint programming techniques have been successfully used for the former, alone they do not suffice to incorporate the latter aspect \cite{constraintscheduling}. 
+
+At first integer programming techniques \cite{combinedttp} were used for the optimization aspect. However, soon stochastic programming techniques such as simulated annealing \cite{simulatedannealing} have been succesfully used which performed significantly better \cite{ttpquan,paper,paper2}.
+
+\subsection*{Search}
+Another example would be searching embeddings in random graphs. Searching an exact number of a certain pattern on massive graphs is computationally infeasible; randomized algorithms also are reported to leverage these problems. \cite{Furer:2008:ACE:1429791.1429826,furerquan}.
+
+\subsection*{Modeling/Inference}
+The above given examples focus more on stochastic optimization and search which is a very interesting subfield of artificial intelligence/optimization in itself. 
+
+Of course, there are also have been probabilistic programming languages developed, e.g.~Problog \cite{problog}, which are more focused on modeling the uncertainties of the world. This allows the user to make inductive inference which have a probability associated: an interesting application is in the area of robotics \cite{golog}. From my personal experience with Problog, the language does contain some pitfalls for a user who had experience with Prolog (such as the use of findall with probabilistic facts). Also extensions of Problog such as DTProblog \cite{dtproblog} or CP-Logic \cite{cplogic} can be studied.
+
+
+\section{Programming languages}
+It is important to note that Artificial Intelligence is a very broad topic. A selection of programming languages is thus always very difficult.\footnote{See \url{http://stackoverflow.com/questions/82036/what-is-a-good-programming-language-for-ai}.} One of the most important things to consider is the need to combine different strategies (and thus also programming languages) \cite{progai,Neumann1} based on the task (domain) at hand.
+ 
+
+\section{Constraint programming in imperative languages}
+While for instance ECLiPSe integrates constraints in a logic
+programming language (Prolog) in a ``natural'' way, sometimes---mostly for performance issues---users want to benefit from the declarative paradigm using imperative languages such as C++ (e.g.~Gecode) \cite{cp4im_aaai10_nectar}. A specific example would be using constraint programming for pattern mining \cite{cpquan}.
+
+
+\section{Conclusion}
+It is clear that selecting a subset of good topics is not easy. While most of the topics discussed and also given in the course are mostly ``academical'' topics --- which are interesting on their own, it would also be refreshing to actually use some AI programming language coupled with a more ``real-world'' project. However, this would also require more effort and it might not be so easy to organize.
+
+
+\clearpage
+
+\part{Task~4}
+As an example of the ease of constraint programming, we consider the Survo puzzle \cite{wiki:survo}.
+
+\section{Introduction}
+This introduction is taken from \cite{survo}.
+\begin{quote}
+A class of cross sum puzzles called Survo puzzles will be studied. Survo puzzles
+are somewhat related to Kakuro cross sum puzzles but played on a simple, open
+rectangular grid and without limiting to integers from 1 to 9.
+
+In a Survo puzzle the task is to fill an $m \times n$-table by integers $1, 2, \ldots , mn$ so
+that each of these numbers appears only once and their row and column sums are
+equal to integers given on the bottom and the right side of the table. Often some
+of the integers are given readily in the table in order to guarantee uniqueness of the
+solution and/or for making the task easier.
+\end{quote}
+
+Consider the following example and its solution:
+
+\begin{minipage}{0.5\textwidth}
+\[
+\begin{array}{ |c | c | c | c || c | } \hline
+ 	 &	6 &	&	&	30\\\hline
+ 	& 	&	&	&	18\\\hline
+	 &	&	3 	&	&30\\ \hline\hline
+	27 &	16 &	10 	&25 & \\	\hline
+\end{array}
+\]
+\end{minipage}
+\hfill
+\begin{minipage}{0.5\textwidth}
+\[
+\begin{array}{ |c | c | c | c || c | } \hline
+	12 &	6 &	2 &	10 &	30 \\\hline
+	8 &	1 &	5 &	4 &	18\\\hline
+	7 &	9 &	3 &	11 &	30\\\hline\hline
+	27 &	16 &	10 &	25 &	\\\hline
+\end{array}
+\]
+\end{minipage}
+
+
+
+
+\clearpage
+
+%% Define a new 'leo' style for the package that will use a smaller font.
+\makeatletter
+\def\url@leostyle{%
+  \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\footnotesize\ttfamily}}}
+\makeatother
+%% Now actually use the newly defined style.
+\urlstyle{leo}
+
+\bibliography{biblio}
+
+
+\end{document}
+
+
+	
+

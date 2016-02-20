@@ -1,0 +1,21 @@
+### Sudoku classic CHR, Sat May 28 21:57:51 CEST 2011
+### medium difficult verydifficult expert lambda hard17 symme eastermonster tarek_052 goldennugget coloin hardest extra1 extra2 extra3 extra4
+### Runtimes in ms
+80
+80
+70
+80
+110
+110
+80
+80
+80
+80
+89
+91
+100
+100
+110
+109
+60
+100

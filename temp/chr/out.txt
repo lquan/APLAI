@@ -1,0 +1,10 @@
+### Sudoku classic CHR, Wed May 25 23:56:43 CEST 2011
+### medium difficult verydifficult expert lambda hard17 symme eastermonster tarek_052 goldennugget coloin hardest extra1 extra2 extra3 extra4
+### Seconds
+Action (h for help) ? Unknown option (h for help)
+Action (h for help) ? 
+Action (h for help) ? 
+Action (h for help) ? Unknown option (h for help)
+Action (h for help) ? Unknown option (h for help)
+Action (h for help) ? Unknown option (h for help)
+Action (h for help) ? 
